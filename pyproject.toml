@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "web-chat"
+version = "0.1.0"
+description = ""
+authors = ["John Preston <john@preston.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.12"
+alembic = "^1.18.1"
+asyncpg = "^0.31.0"
+fastapi = "^0.128.0"
+psycopg2 = "^2.9.11"
+pydantic = "^2.12.5"
+pydantic-settings = "^2.12.0"
+sqlalchemy = "^2.0.46"
+uvicorn = "^0.40.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
