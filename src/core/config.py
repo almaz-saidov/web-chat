@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import Final
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -27,4 +28,4 @@ class Settings(BaseSettings):
     )
 
 
-settings = Settings()
+settings: Final = Settings()
