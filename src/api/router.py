@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from api.routes.websoket import router as ws_router
+from api.routes.websocket import router as ws_router
 
 router = APIRouter(prefix="/api")
 
