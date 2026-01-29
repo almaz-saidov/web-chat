@@ -1,23 +1,11 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket
 
-from core.connection_manager import manager
+from services.websoket_service import get_websocket_service
 
 router = APIRouter()
 
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, username: str = "Guest"):
-    await manager.connect(websocket, username)
-
-    await manager.broadcast(f"{username} joined the chat.")
-
-    try:
-        while True:
-            data = await websocket.receive_text()
-
-            await manager.broadcast(f"{username}: {data}")
-
-    except WebSocketDisconnect:
-        disconnected_user = manager.disconnect(websocket)
-        if disconnected_user:
-            await manager.broadcast(f"{disconnected_user} left the chat.")
+    websocket_service = get_websocket_service()
+    await websocket_service.handle_websocket(websocket, username)
