@@ -1,6 +1,6 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from websoket.connection_manager import manager
+from core.connection_manager import manager
 
 router = APIRouter()
 
