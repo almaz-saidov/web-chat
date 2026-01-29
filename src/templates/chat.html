@@ -151,7 +151,7 @@
         username = username.trim();
 
         // Connect to WebSocket
-        const ws = new WebSocket(`ws://${window.location.host}/ws?username=${encodeURIComponent(username)}`);
+        const ws = new WebSocket(`ws://${window.location.host}/api/ws?username=${encodeURIComponent(username)}`);
 
         // WebSocket event handler
         ws.onmessage = (event) => {
