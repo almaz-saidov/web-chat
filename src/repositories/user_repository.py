@@ -1,4 +1,3 @@
-import uuid
 from typing import Optional
 
 from database.models import User
