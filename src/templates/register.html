@@ -132,9 +132,9 @@
 
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
+            const password_confirmation = document.getElementById('confirmPassword').value;
 
-            if (password !== confirmPassword) {
+            if (password !== password_confirmation) {
                 document.getElementById('error').style.display = 'block';
                 document.getElementById('error').textContent = 'Passwords do not match';
                 return;
@@ -144,7 +144,11 @@
                 const response = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username, password})
+                    body: JSON.stringify({
+                        username,
+                        password,
+                        password_confirmation
+                    })
                 });
 
                 if (response.ok) {
