@@ -15,4 +15,4 @@ class DbService(ABC, Generic[REPOSITORY_TYPE]):
 
     @abstractmethod
     def _create_repository(self) -> REPOSITORY_TYPE:
-        raise NotImplementedError("Необходимо определить self.repository")
+        raise NotImplementedError("The repository object must be defined in self.repository")
