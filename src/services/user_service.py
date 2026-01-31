@@ -1,4 +1,5 @@
 from typing import Optional
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import User
@@ -10,10 +11,7 @@ class UserService(DbService[UserRepository]):
     async def get_user(self, **filter_by) -> Optional[User]:
         return await self.repository.get_user(**filter_by)
 
-    async def create_user(
-        self,
-        user_data: dict[str, str],
-    ) -> User:
+    async def create_user(self, user_data: dict[str, str]) -> User:
         return await self.repository.create_user(user_data)
 
     def _create_repository(self) -> UserRepository:

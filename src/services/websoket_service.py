@@ -6,11 +6,7 @@ from core.connection_manager import manager
 
 
 class WebSocketService:
-    async def handle_websocket(
-        self,
-        websocket: WebSocket,
-        username: str,
-    ) -> None:
+    async def handle_websocket(self, websocket: WebSocket, username: str) -> None:
         await self._connect(websocket, username)
 
         try:
@@ -21,18 +17,11 @@ class WebSocketService:
         except WebSocketDisconnect:
             await self._disconnect(websocket)
 
-    async def _connect(
-        self,
-        websocket: WebSocket,
-        username: str,
-    ) -> None:
+    async def _connect(self, websocket: WebSocket, username: str) -> None:
         await manager.connect(websocket, username)
         await manager.broadcast(f"{username} joined the chat.")
 
-    async def _disconnect(
-        self,
-        websocket: WebSocket,
-    ) -> None:
+    async def _disconnect(self, websocket: WebSocket) -> None:
         disconnected_user = manager.disconnect(websocket)
         if disconnected_user:
             await manager.broadcast(f"{disconnected_user} left the chat.")

@@ -11,11 +11,7 @@ MODEL_TYPE = TypeVar("MODEL_TYPE", bound=Base)
 class Repository(Generic[MODEL_TYPE]):
     cls_model: Optional[Type[MODEL_TYPE]] = None
 
-    def __init__(
-        self, 
-        session: AsyncSession, 
-        model: Optional[Type[MODEL_TYPE]] = None,
-    ) -> None:
+    def __init__(self, session: AsyncSession, model: Optional[Type[MODEL_TYPE]] = None) -> None:
         self.session = session
         self.model: Type[MODEL_TYPE]
 
