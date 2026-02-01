@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.schemas import UserCreate, UserResponse
-from database.unit_of_work import get_uow_session
+from api.dependesies import get_uow_session
 from services.auth_service import get_auth_service
 
 router = APIRouter(prefix="/auth")
