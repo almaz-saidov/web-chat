@@ -1,9 +1,12 @@
+from typing import Optional
+
 import bcrypt
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.schemas import UserCreate
+from api.schemas import TokenInfo, UserCreate, UserSignIn
 from database.models import User
+from services.jwt_service import get_jwt_service
 from services.user_service import get_user_service
 
 
@@ -12,29 +15,63 @@ class AuthService:
         self.session = session
 
     async def register_user(self, user_data: UserCreate) -> User:
-        user_service = get_user_service(self.session)
-        user = await user_service.get_user(username=user_data.username)
+        user = await self._get_user(username=user_data.username)
         if user:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="The user with this username already exists",
             )
 
-        return await user_service.create_user({
-            "username": user_data.username,
-            "password_hash": self._hash_password(user_data.password),
+        return await self._register_user_in_db(user_data)
+
+    async def sign_in(self, sign_in_data: UserSignIn) -> TokenInfo:
+        user = await self._get_user(username=sign_in_data.username)            
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+
+        if not self._verify_password(sign_in_data.password, user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Wrong password",
+            )
+
+        jwt_payload = self._get_jwt_payload(user)
+        jwt_service = get_jwt_service()
+        access_token = jwt_service.encode_jwt(jwt_payload)
+
+        return TokenInfo(access_token=access_token)
+
+    async def _get_user(self, **filter_by) -> Optional[User]:
+        user = await get_user_service(self.session).get_user(**filter_by)
+        return user
+
+    async def _register_user_in_db(self, data: UserCreate) -> User:
+        user = await get_user_service(self.session).create_user({
+            "username": data.username,
+            "password_hash": self._hash_password(data.password),
         })
+        return user
 
     def _hash_password(self, password: str) -> str:
         salt = bcrypt.gensalt()
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
         return hashed_password.decode('utf-8')
 
-    def _verify_password(self, plain_password: str, hashed_password: str) -> bool:
+    def _verify_password(self, password: str, hashed_password: str) -> bool:
         return bcrypt.checkpw(
-            plain_password.encode('utf-8'),
+            password.encode('utf-8'),
             hashed_password.encode('utf-8'),
         )
+
+    def _get_jwt_payload(self, user: User) -> dict[str, str]:
+        jwt_payload = {
+            "sub": str(user.id),
+            "username": user.username,
+        }
+        return jwt_payload
 
 
 def get_auth_service(session: AsyncSession) -> AuthService:

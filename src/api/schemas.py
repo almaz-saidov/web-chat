@@ -24,7 +24,7 @@ class UserCreate(BaseModel):
         return self
 
 
-class UserLogin(BaseModel):
+class UserSignIn(BaseModel):
     username: str
     password: str
 
@@ -36,3 +36,8 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class TokenInfo(BaseModel):
+    access_token: str
+    token_type: str = "Bearer"
