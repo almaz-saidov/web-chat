@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-from typing import Any
 
 import jwt
 
@@ -9,7 +8,7 @@ from core.config import settings
 class JWTService:
     def encode_jwt(
         self,
-        payload: dict[str, Any],
+        payload: dict[str, str],
         private_key: str = settings.PRIVATE_KEY_PATH.read_text(),
         algorithm: str = settings.ALGORITHM,
         expire_minutes: int = settings.ACCESS_TOKEN_EXPIRE_MINUTES,
