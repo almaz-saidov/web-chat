@@ -1,2 +1,4 @@
 __pycache__
 .env
+jwt-private.pem
+jwt-public.pem

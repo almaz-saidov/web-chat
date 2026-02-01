@@ -18,9 +18,10 @@ class Settings(BaseSettings):
     DB_PASS: str
     DB_NAME: str
 
-    JWT_SECRET_KEY: str
-    JWT_ALGORITHM: str
-    ACCESS_TOKEN_EXPIRE_HOURS: int
+    PRIVATE_KEY_PATH: Path = os.path.join(BASE_DIR, "core", "certs", "jwt-private.pem")
+    PUBLIC_KEY_PATH: Path = os.path.join(BASE_DIR, "core", "certs", "jwt-public.pem")
+    ALGORITHM: str = "RS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
 
     @property
     def DB_URL(self) -> str:
