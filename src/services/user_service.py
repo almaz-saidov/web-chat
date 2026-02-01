@@ -1,3 +1,4 @@
+from functools import lru_cache
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,5 +19,6 @@ class UserService(DbService[UserRepository]):
         return UserRepository(self.session)
 
 
+@lru_cache
 def get_user_service(session: AsyncSession) -> UserService:
     return UserService(session)
