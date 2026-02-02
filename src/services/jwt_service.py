@@ -25,7 +25,7 @@ class JWTService:
         token: str,
         public_key: str = settings.PUBLIC_KEY_PATH.read_text(),
         algorithm: str = settings.ALGORITHM,
-    ) -> str:
+    ) -> dict[str, Any]:
         return jwt.decode(token, public_key, algorithms=[algorithm])
 
 
