@@ -24,7 +24,7 @@ class UserCreate(BaseModel):
         return self
 
 
-class UserSignIn(BaseModel):
+class UserLogin(BaseModel):
     username: str
     password: str
 
