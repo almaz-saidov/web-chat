@@ -146,12 +146,9 @@
     </div>
 
 <script>
-        // Get username
-        let username = prompt("Enter your username:", "Guest") || "Guest";
-        username = username.trim();
-
         // Connect to WebSocket
-        const ws = new WebSocket(`ws://${window.location.host}/api/ws?username=${encodeURIComponent(username)}`);
+        const token = localStorage.getItem('access_token');
+        const ws = new WebSocket(`ws://${window.location.host}/api/ws?token=${token}`);
 
         // WebSocket event handler
         ws.onmessage = (event) => {
