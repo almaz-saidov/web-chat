@@ -37,12 +37,5 @@ async def get_current_user_from_ws(
             reason="Token is required",
         )
 
-    try:
-        auth_service = get_auth_service(db_session)
-        return await auth_service.authorize_user(token)
-    except ValueError as e:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        raise WebSocketException(
-            code=status.WS_1008_POLICY_VIOLATION,
-            reason=str(e)
-        )
+    auth_service = get_auth_service(db_session)
+    return await auth_service.authorize_user(token)
