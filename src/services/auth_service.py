@@ -24,18 +24,12 @@ class AuthService:
 
         return await self._register_user_in_db(user_data)
 
-    async def sign_in(self, sign_in_data: UserSignIn) -> TokenInfo:
+    async def authenticate_user(self, sign_in_data: UserSignIn) -> TokenInfo:
         user = await self._get_user(username=sign_in_data.username)            
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
-            )
-
-        if not self._verify_password(sign_in_data.password, user.password_hash):
+        if not user or not self._verify_password(sign_in_data.password, user.password_hash):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Wrong password",
+                detail="Invalid credentials",
             )
 
         jwt_payload = self._get_jwt_payload(user)

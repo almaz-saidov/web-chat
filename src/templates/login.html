@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registration</title>
+    <title>Login</title>
     <style>
         body {
-            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             height: 100vh;
             margin: 0;
             display: flex;
@@ -15,7 +15,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .register-box {
+        .login-box {
             background: white;
             padding: 40px;
             border-radius: 12px;
@@ -45,13 +45,13 @@
 
         input:focus {
             outline: none;
-            border-color: #764ba2;
+            border-color: #667eea;
         }
 
         .btn {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -72,7 +72,7 @@
         }
 
         .link a {
-            color: #764ba2;
+            color: #667eea;
             text-decoration: none;
             font-weight: 500;
         }
@@ -86,26 +86,15 @@
             font-size: 14px;
             display: none;
         }
-
-        .success {
-            background: #c6f6d5;
-            color: #276749;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            display: none;
-        }
     </style>
 </head>
 <body>
-    <div class="register-box">
-        <h1>Registration</h1>
+    <div class="login-box">
+        <h1>Login</h1>
 
         <div class="error" id="error"></div>
-        <div class="success" id="success"></div>
 
-        <form id="registerForm">
+        <form id="loginForm">
             <div class="input-group">
                 <input type="text" id="username" placeholder="Username" required>
             </div>
@@ -114,61 +103,50 @@
                 <input type="password" id="password" placeholder="Password" required>
             </div>
 
-            <div class="input-group">
-                <input type="password" id="confirmPassword" placeholder="Confirm password" required>
-            </div>
-
-            <button type="submit" class="btn">Register</button>
+            <button type="submit" class="btn">Login</button>
         </form>
 
         <div class="link">
-            Already have an account? <a href="/login.html">Login</a>
+            Don't have an account? <a href="/register.html">Register</a>
         </div>
     </div>
 
     <script>
-        document.getElementById('registerForm').onsubmit = async function(e) {
+        document.getElementById('loginForm').onsubmit = async function(e) {
             e.preventDefault();
 
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const password_confirmation = document.getElementById('confirmPassword').value;
-
-            if (password !== password_confirmation) {
-                document.getElementById('error').style.display = 'block';
-                document.getElementById('error').textContent = 'Passwords do not match';
-                return;
-            }
 
             try {
-                const response = await fetch('/api/auth/register', {
+                const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        username,
-                        password,
-                        password_confirmation
-                    })
+                    body: JSON.stringify({username, password})
                 });
 
                 if (response.ok) {
-                    document.getElementById('error').style.display = 'none';
-                    document.getElementById('success').style.display = 'block';
-                    document.getElementById('success').textContent = 'Registration successful!';
+                    const data = await response.json();
 
-                    setTimeout(() => {
-                        window.location.href = '/login.html';
-                    }, 1500);
+                    // Save token and token type
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('token_type', data.token_type);
+
+                    // Redirect to chat
+                    window.location.href = '/chat.html';
                 } else {
                     const error = await response.json();
                     document.getElementById('error').style.display = 'block';
-                    document.getElementById('error').textContent = error.detail || 'Registration error';
+                    document.getElementById('error').textContent = error.detail || 'Invalid username or password';
                 }
             } catch {
                 document.getElementById('error').style.display = 'block';
                 document.getElementById('error').textContent = 'Connection error';
             }
         };
+
+        // Autofocus on username field
+        document.getElementById('username').focus();
     </script>
 </body>
 </html>
