@@ -9,7 +9,7 @@ REPOSITORY_TYPE = TypeVar("REPOSITORY_TYPE", bound=Repository)
 
 
 class DbService(ABC, Generic[REPOSITORY_TYPE]):
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession) -> None:
         self.session = session
         self.repository: REPOSITORY_TYPE = self._create_repository()
 

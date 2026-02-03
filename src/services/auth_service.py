@@ -14,7 +14,7 @@ from services.user_service import get_user_service
 
 
 class AuthService:
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
     async def register_user(self, user_data: UserCreate) -> User:
