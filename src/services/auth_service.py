@@ -3,11 +3,13 @@ from functools import lru_cache
 from typing import Any, Optional
 
 import bcrypt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from jwt.exceptions import InvalidTokenError
 
 from api.schemas import TokenInfo, UserCreate, UserLogin
-from core.exceptions import InvalidTokenHTTPException
+from core.exceptions import (InvalidTokenHTTPException,
+                             UserAlreadyExistsHTTPException,
+                             WrongUsernameOrPasswordHTTPException)
 from database.models import User
 from services.jwt_service import JWTService, get_jwt_service
 from services.user_service import UserService, get_user_service
@@ -21,10 +23,7 @@ class AuthService:
     async def register_user(self, user_data: UserCreate) -> User:
         user = await self._get_user(username=user_data.username)
         if user:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="The user with this username already exists",
-            )
+            raise UserAlreadyExistsHTTPException()
 
         return await self._register_user_in_db(user_data)
 
@@ -34,10 +33,7 @@ class AuthService:
     ) -> TokenInfo:
         user = await self._get_user(username=sign_in_data.username)            
         if not user or not self._verify_password(sign_in_data.password, user.password_hash):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Wrong username or password",
-            )
+            raise WrongUsernameOrPasswordHTTPException()
 
         jwt_payload = self._get_jwt_payload(user)
         access_token = self.jwt_service.encode_jwt(jwt_payload)
