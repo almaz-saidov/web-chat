@@ -14,3 +14,8 @@ async def unit_of_work() -> AsyncIterator[AsyncSession]:
             yield session
     finally:
         await session.close()
+
+
+async def get_uow_session() -> AsyncIterator[AsyncSession]:
+    async with unit_of_work() as session:
+        yield session

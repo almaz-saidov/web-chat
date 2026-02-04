@@ -1,9 +1,11 @@
 from functools import lru_cache
 from typing import Optional
 
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import User
+from database.unit_of_work import get_uow_session
 from repositories.user_repository import UserRepository
 from services.db_service import DbService
 
@@ -20,5 +22,5 @@ class UserService(DbService[UserRepository]):
 
 
 @lru_cache
-def get_user_service(session: AsyncSession) -> UserService:
+def get_user_service(session: AsyncSession = Depends(get_uow_session)) -> UserService:
     return UserService(session)
