@@ -17,8 +17,8 @@ from services.user_service import UserService, get_user_service
 
 class AuthService:
     def __init__(self, jwt_service: JWTService, user_service: UserService) -> None:
-        self.jwt_service = jwt_service
-        self.user_service = user_service
+        self.__jwt_service = jwt_service
+        self.__user_service = user_service
 
     async def register_user(self, user_data: UserCreate) -> User:
         user = await self._get_user(username=user_data.username)
@@ -36,7 +36,7 @@ class AuthService:
             raise WrongUsernameOrPasswordHTTPException()
 
         jwt_payload = self._get_jwt_payload(user)
-        access_token = self.jwt_service.encode_jwt(jwt_payload)
+        access_token = self.__jwt_service.encode_jwt(jwt_payload)
 
         return TokenInfo(access_token=access_token)
 
@@ -45,7 +45,7 @@ class AuthService:
         token: str,
     ) -> User:
         try:
-            payload = self.jwt_service.decode_jwt(token)
+            payload = self.__jwt_service.decode_jwt(token)
         except InvalidTokenError:
             raise InvalidTokenHTTPException()
 
@@ -62,11 +62,11 @@ class AuthService:
         return user
 
     async def _get_user(self, **filter_by) -> Optional[User]:
-        user = await self.user_service.get_user(**filter_by)
+        user = await self.__user_service.get_user(**filter_by)
         return user
 
     async def _register_user_in_db(self, data: UserCreate) -> User:
-        user = await self.user_service.create_user({
+        user = await self.__user_service.create_user({
             "username": data.username,
             "password_hash": self._hash_password(data.password),
         })

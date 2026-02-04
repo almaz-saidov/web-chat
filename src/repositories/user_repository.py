@@ -8,7 +8,7 @@ class UserRepository(
     InsertOneRepository[User],
     SelectOneRepository[User],
 ):
-    cls_model = User
+    _cls_model = User
 
     async def get_user(self, **filter_by) -> Optional[User]:
         return await self.select_one(**filter_by)

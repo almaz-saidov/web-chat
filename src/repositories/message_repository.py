@@ -6,7 +6,7 @@ class MessageRepository(
     InsertOneRepository[Message],
     SelectAllRepository[Message],
 ):
-    cls_model = Message
+    _cls_model = Message
 
     async def create_message(self, data: dict[str, str]) -> Message:
         return await self.insert_one(data)
