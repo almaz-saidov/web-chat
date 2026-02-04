@@ -13,8 +13,7 @@ async def register_user(
     user_data: UserCreate,
     db_session: AsyncSession = Depends(get_uow_session),
 ):
-    auth_service = get_auth_service(db_session)
-    return await auth_service.register_user(user_data)
+    return await get_auth_service(db_session).register_user(user_data)
 
 
 @router.post("/login", response_model=TokenInfo)
@@ -22,5 +21,4 @@ async def login_user(
     sign_in_data: UserLogin,
     db_session: AsyncSession = Depends(get_uow_session),
 ):
-    auth_service = get_auth_service(db_session)
-    return await auth_service.authenticate_user(sign_in_data)
+    return await get_auth_service(db_session).authenticate_user(sign_in_data)

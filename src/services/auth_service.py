@@ -1,4 +1,5 @@
 import uuid
+from functools import lru_cache
 from typing import Any, Optional
 
 import bcrypt
@@ -36,15 +37,13 @@ class AuthService:
             )
 
         jwt_payload = self._get_jwt_payload(user)
-        jwt_service = get_jwt_service()
-        access_token = jwt_service.encode_jwt(jwt_payload)
+        access_token = get_jwt_service().encode_jwt(jwt_payload)
 
         return TokenInfo(access_token=access_token)
 
     async def authorize_user(self, token: str) -> User:
-        jwt_service = get_jwt_service()
         try:
-            payload = jwt_service.decode_jwt(token)
+            payload = get_jwt_service().decode_jwt(token)
         except InvalidTokenError:
             raise InvalidTokenHTTPException()
 
@@ -65,8 +64,7 @@ class AuthService:
         return user
 
     async def _register_user_in_db(self, data: UserCreate) -> User:
-        user_service = get_user_service(self.session)
-        user = await user_service.create_user({
+        user = await get_user_service(self.session).create_user({
             "username": data.username,
             "password_hash": self._hash_password(data.password),
         })
@@ -91,5 +89,6 @@ class AuthService:
         return jwt_payload
 
 
+@lru_cache
 def get_auth_service(session: AsyncSession) -> AuthService:
     return AuthService(session)

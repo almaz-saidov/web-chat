@@ -20,8 +20,7 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db_session: AsyncSession = Depends(get_uow_session),
 ) -> User:
-    auth_service = get_auth_service(db_session)
-    return await auth_service.authorize_user(credentials.credentials)
+    return await get_auth_service(db_session).authorize_user(credentials.credentials)
 
 
 async def get_current_user_from_ws(
@@ -37,5 +36,4 @@ async def get_current_user_from_ws(
             reason="Token is required",
         )
 
-    auth_service = get_auth_service(db_session)
-    return await auth_service.authorize_user(token)
+    return await get_auth_service(db_session).authorize_user(token)
