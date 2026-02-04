@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from core.config import settings
 from database.base import Base
-from database.models import User, Message  # noqa
+from database.models import Message, User  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
