@@ -1,6 +1,6 @@
 from typing import Generic, Optional, Type, TypeVar, cast
 
-from sqlalchemy import insert, select
+from sqlalchemy import delete, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.base import Base
@@ -41,9 +41,14 @@ class SelectOneRepository(Repository[MODEL_TYPE]):
 
 class SelectAllRepository(Repository[MODEL_TYPE]):
     async def select_all(self, **filter_by) -> list[MODEL_TYPE]:
-        stmt = select(self.model)
-        if filter_by:
-            stmt = stmt.filter_by(**filter_by)
+        stmt = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(stmt)
 
         return cast(list[MODEL_TYPE], result.scalars().all())
+
+
+class ForceDeleteRepository(Repository[MODEL_TYPE]):
+    async def force_delete(self, **filter_by) -> None:
+        stmt = delete(self.model).filter_by(**filter_by)
+
+        await self.session.execute(stmt)
