@@ -4,10 +4,11 @@ from typing import Any, Optional
 
 import bcrypt
 from fastapi import Depends
-from jwt.exceptions import InvalidTokenError
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
 from api.schemas import TokenInfo, UserCreate, UserLogin
 from core.exceptions import (InvalidTokenHTTPException,
+                             TokenExpiredHTTPException,
                              UserAlreadyExistsHTTPException,
                              WrongUsernameOrPasswordHTTPException)
 from database.models import User
@@ -46,6 +47,8 @@ class AuthService:
     ) -> User:
         try:
             payload = self.__jwt_service.decode_jwt(token)
+        except ExpiredSignatureError:
+            raise TokenExpiredHTTPException()
         except InvalidTokenError:
             raise InvalidTokenHTTPException()
 

@@ -18,7 +18,7 @@ class JWTService:
         to_encode = payload.copy()
 
         expire = datetime.now(timezone.utc) + timedelta(minutes=expire_minutes)
-        to_encode.update(exp=expire)
+        to_encode.update(exp=int(expire.timestamp()))
 
         return jwt.encode(to_encode, private_key, algorithm)
 
@@ -28,7 +28,15 @@ class JWTService:
         public_key: str = settings.PUBLIC_KEY_PATH.read_text(),
         algorithm: str = settings.ALGORITHM,
     ) -> dict[str, Any]:
-        return jwt.decode(token, public_key, algorithms=[algorithm])
+        return jwt.decode(
+            token,
+            public_key,
+            algorithms=[algorithm],
+            options={
+                "verify_exp": True,
+                "require_exp": True,
+            },
+        )
 
 
 @lru_cache
