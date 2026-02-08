@@ -29,10 +29,10 @@ class AuthService:
 
     async def authenticate_user(
         self,
-        sign_in_data: UserLogin,
+        login_data: UserLogin,
     ) -> TokenInfo:
-        user = await self._get_user(username=sign_in_data.username)            
-        if not user or not self._verify_password(sign_in_data.password, user.password_hash):
+        user = await self._get_user(username=login_data.username)            
+        if not user or not self._verify_password(login_data.password, user.password_hash):
             raise WrongUsernameOrPasswordHTTPException()
 
         jwt_payload = self._get_jwt_payload(user)

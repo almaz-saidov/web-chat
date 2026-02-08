@@ -16,7 +16,7 @@ async def register_user(
 
 @router.post("/login", response_model=TokenInfo)
 async def login_user(
-    sign_in_data: UserLogin,
+    login_data: UserLogin,
     auth_service: AuthService = Depends(get_auth_service),
 ):
-    return await auth_service.authenticate_user(sign_in_data)
+    return await auth_service.authenticate_user(login_data)
