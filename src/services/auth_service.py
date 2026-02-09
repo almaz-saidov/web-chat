@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timedelta
 from functools import lru_cache
 from typing import Any, Optional
 
@@ -13,13 +14,21 @@ from core.exceptions import (InvalidTokenHTTPException,
                              WrongUsernameOrPasswordHTTPException)
 from database.models import User
 from services.jwt_service import JWTService, get_jwt_service
+from services.refresh_token_service import (RefreshTokenService,
+                                            get_refresh_token_service)
 from services.user_service import UserService, get_user_service
 
 
 class AuthService:
-    def __init__(self, jwt_service: JWTService, user_service: UserService) -> None:
+    def __init__(
+        self,
+        jwt_service: JWTService,
+        user_service: UserService,
+        refresh_token_service: RefreshTokenService
+    ) -> None:
         self.__jwt_service = jwt_service
         self.__user_service = user_service
+        self.__refresh_token_service = refresh_token_service
 
     async def register_user(self, user_data: UserCreate) -> User:
         user = await self._get_user(username=user_data.username)
@@ -38,6 +47,9 @@ class AuthService:
 
         jwt_payload = self._get_jwt_payload(user)
         access_token = self.__jwt_service.encode_jwt(jwt_payload)
+
+        refresh_token_creation_data = self._get_refresh_token_creation_data(user)
+        refresh_token = await self.__refresh_token_service.create_token(refresh_token_creation_data)
 
         return TokenInfo(access_token=access_token)
 
@@ -93,10 +105,18 @@ class AuthService:
         }
         return jwt_payload
 
+    def _get_refresh_token_creation_data(self, user: User) -> dict[str, Any]:
+        refresh_token_creation_data = {
+            "user_id": user.id,
+            "expires_at": datetime.now() + timedelta(days=30),
+        }
+        return refresh_token_creation_data
+
 
 @lru_cache
 def get_auth_service(
     jwt_service: JWTService = Depends(get_jwt_service),
     user_service: UserService = Depends(get_user_service),
+    refresh_token_service: RefreshTokenService = Depends(get_refresh_token_service),
 ) -> AuthService:
-    return AuthService(jwt_service, user_service)
+    return AuthService(jwt_service, user_service, refresh_token_service)
