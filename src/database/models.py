@@ -5,6 +5,8 @@ from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from core.config import settings
+
 from .base import Base
 
 
@@ -40,6 +42,6 @@ class RefreshToken(Base):
     refresh_token: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, unique=True, default=uuid.uuid4)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=text("(NOW() + INTERVAL '30 days')")
+        DateTime(timezone=True), nullable=False, server_default=text(f"(NOW() + INTERVAL '{settings.REFRESH_TOKEN_EXPIRE_DAYS} days')")
     )
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
