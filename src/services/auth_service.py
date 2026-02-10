@@ -4,7 +4,7 @@ from functools import lru_cache
 from typing import Any, Optional
 
 import bcrypt
-from fastapi import Depends
+from fastapi import Depends, Response
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
 from api.schemas import TokenInfo, UserCreate, UserLogin
@@ -13,6 +13,7 @@ from core.exceptions import (InvalidTokenHTTPException,
                              UserAlreadyExistsHTTPException,
                              WrongUsernameOrPasswordHTTPException)
 from database.models import User
+from services.cookies_service import CookiesService, get_cookies_service
 from services.jwt_service import JWTService, get_jwt_service
 from services.refresh_token_service import (RefreshTokenService,
                                             get_refresh_token_service)
@@ -24,11 +25,13 @@ class AuthService:
         self,
         jwt_service: JWTService,
         user_service: UserService,
-        refresh_token_service: RefreshTokenService
+        refresh_token_service: RefreshTokenService,
+        cookies_service: CookiesService,
     ) -> None:
         self.__jwt_service = jwt_service
         self.__user_service = user_service
         self.__refresh_token_service = refresh_token_service
+        self.__cookies_service = cookies_service
 
     async def register_user(self, user_data: UserCreate) -> User:
         user = await self._get_user(username=user_data.username)
@@ -40,6 +43,7 @@ class AuthService:
     async def authenticate_user(
         self,
         login_data: UserLogin,
+        response: Response,
     ) -> TokenInfo:
         user = await self._get_user(username=login_data.username)            
         if not user or not self._verify_password(login_data.password, user.password_hash):
@@ -50,6 +54,7 @@ class AuthService:
 
         refresh_token_creation_data = self._get_refresh_token_creation_data(user)
         refresh_token = await self.__refresh_token_service.create_token(refresh_token_creation_data)
+        self.__cookies_service.set_cookies(response, refresh_token)
 
         return TokenInfo(access_token=access_token)
 
@@ -118,5 +123,6 @@ def get_auth_service(
     jwt_service: JWTService = Depends(get_jwt_service),
     user_service: UserService = Depends(get_user_service),
     refresh_token_service: RefreshTokenService = Depends(get_refresh_token_service),
+    cookies_service: CookiesService = Depends(get_cookies_service),
 ) -> AuthService:
-    return AuthService(jwt_service, user_service, refresh_token_service)
+    return AuthService(jwt_service, user_service, refresh_token_service, cookies_service)

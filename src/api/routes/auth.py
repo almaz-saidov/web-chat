@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 
 from api.schemas import TokenInfo, UserCreate, UserLogin, UserResponse
 from services.auth_service import AuthService, get_auth_service
@@ -17,6 +17,7 @@ async def register_user(
 @router.post("/login", response_model=TokenInfo)
 async def login_user(
     login_data: UserLogin,
+    response: Response,
     auth_service: AuthService = Depends(get_auth_service),
 ):
-    return await auth_service.authenticate_user(login_data)
+    return await auth_service.authenticate_user(login_data, response)
