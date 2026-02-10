@@ -29,6 +29,11 @@ class UserLogin(BaseModel):
     password: str
 
 
+class LocalStorageUserData(BaseModel):
+    id: uuid.UUID
+    username: str
+
+
 class UserResponse(BaseModel):
     id: uuid.UUID
     username: str

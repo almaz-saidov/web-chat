@@ -1,16 +1,18 @@
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from typing import Any, Optional
 
 import bcrypt
-from fastapi import Depends, Response
+from fastapi import Depends, Request, Response
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
-from api.schemas import TokenInfo, UserCreate, UserLogin
-from core.exceptions import (InvalidTokenHTTPException,
-                             TokenExpiredHTTPException,
+from api.schemas import LocalStorageUserData, TokenInfo, UserCreate, UserLogin
+from core.exceptions import (AccessTokenExpiredHTTPException,
+                             InvalidTokenHTTPException,
+                             RefreshTokenExpiredHTTPException,
                              UserAlreadyExistsHTTPException,
+                             WrongRefreshTokenHTTPException,
                              WrongUsernameOrPasswordHTTPException)
 from database.models import User
 from services.cookies_service import CookiesService, get_cookies_service
@@ -40,15 +42,38 @@ class AuthService:
 
         return await self._register_user_in_db(user_data)
 
-    async def authenticate_user(
-        self,
-        login_data: UserLogin,
-        response: Response,
-    ) -> TokenInfo:
-        user = await self._get_user(username=login_data.username)            
+    async def authenticate_user(self, login_data: UserLogin, response: Response) -> TokenInfo:
+        user = await self._get_user(username=login_data.username)
         if not user or not self._verify_password(login_data.password, user.password_hash):
             raise WrongUsernameOrPasswordHTTPException()
 
+        access_token = await self._create_tokens(user, response)
+
+        return TokenInfo(access_token=access_token)
+
+    async def authorize_user(self, token: str) -> User:
+        try:
+            payload = self.__jwt_service.decode_jwt(token)
+        except ExpiredSignatureError:
+            raise AccessTokenExpiredHTTPException()
+        except InvalidTokenError:
+            raise InvalidTokenHTTPException()
+
+        user = await self._get_user_via_payload(payload)
+        return user
+
+    async def refresh_tokens(self, user_data: LocalStorageUserData, request: Request, response: Response) -> TokenInfo:
+        refresh_token_from_cookies_str = self.__cookies_service.get_refresh_token_from_cookies(request)
+        refresh_token_from_cookies = self.__refresh_token_service.validate_refresh_token_str(refresh_token_from_cookies_str)
+
+        await self._validate_refresh_token(refresh_token_from_cookies)
+
+        user = await self._get_user(username=user_data.username)
+        access_token = await self._create_tokens(user, response)
+
+        return TokenInfo(access_token=access_token)
+
+    async def _create_tokens(self, user: User, response: Response) -> str:
         jwt_payload = self._get_jwt_payload(user)
         access_token = self.__jwt_service.encode_jwt(jwt_payload)
 
@@ -56,21 +81,7 @@ class AuthService:
         refresh_token = await self.__refresh_token_service.create_token(refresh_token_creation_data)
         self.__cookies_service.set_cookies(response, refresh_token)
 
-        return TokenInfo(access_token=access_token)
-
-    async def authorize_user(
-        self,
-        token: str,
-    ) -> User:
-        try:
-            payload = self.__jwt_service.decode_jwt(token)
-        except ExpiredSignatureError:
-            raise TokenExpiredHTTPException()
-        except InvalidTokenError:
-            raise InvalidTokenHTTPException()
-
-        user = await self._get_user_via_payload(payload)
-        return user
+        return access_token
 
     async def _get_user_via_payload(self, payload: dict[str, Any]) -> User:
         user_id = uuid.UUID(payload.get("sub"))
@@ -80,6 +91,15 @@ class AuthService:
         if not user:
             raise InvalidTokenHTTPException()
         return user
+
+    async def _validate_refresh_token(self, refresh_token_from_cookies: uuid.UUID) -> None:
+        refresh_token_from_db = await self.__refresh_token_service.get_token(refresh_token=refresh_token_from_cookies)
+        if not refresh_token_from_db:
+            raise WrongRefreshTokenHTTPException()
+
+        current_time = datetime.now(timezone.utc)
+        if current_time >= refresh_token_from_db.expires_at:
+            raise RefreshTokenExpiredHTTPException()
 
     async def _get_user(self, **filter_by) -> Optional[User]:
         user = await self.__user_service.get_user(**filter_by)

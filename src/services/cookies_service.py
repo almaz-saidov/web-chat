@@ -1,8 +1,9 @@
 from functools import lru_cache
 
-from fastapi import Response
+from fastapi import Request, Response
 
 from core.config import settings
+from core.exceptions import RefreshTokenCookieIsMissingHTTPException
 from database.models import RefreshToken
 
 
@@ -17,6 +18,14 @@ class CookiesService:
             max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
             path="/api/auth",
         )
+
+    def get_refresh_token_from_cookies(self, request: Request) -> str:
+        refresh_token_str = request.cookies.get("refresh_token")
+
+        if not refresh_token_str:
+            raise RefreshTokenCookieIsMissingHTTPException()
+
+        return refresh_token_str
 
 
 @lru_cache

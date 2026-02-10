@@ -1,9 +1,11 @@
+import uuid
 from functools import lru_cache
 from typing import Any, Optional
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.exceptions import InvalidRefreshTokenFormatHTTPException
 from database.models import RefreshToken
 from database.unit_of_work import get_uow_session
 from repositories.refresh_token_repository import RefreshTokenRepository
@@ -17,7 +19,15 @@ class RefreshTokenService(DbService[RefreshTokenRepository]):
         return await self._repository.create_token(data)
 
     async def get_token(self, **filter_by) -> Optional[RefreshToken]:
-        return await self._repository.get_token(**filter_by)
+        refresh_token = await self._repository.get_token(**filter_by)
+
+        return refresh_token
+
+    def validate_refresh_token_str(self, refresh_token_str: str) -> uuid.UUID:
+        try:
+            return uuid.UUID(refresh_token_str)
+        except ValueError:
+            raise InvalidRefreshTokenFormatHTTPException()
 
     async def _force_delete_existing_tokens(self, data: dict[str, Any]) -> None:
         user_id = data.get("user_id")

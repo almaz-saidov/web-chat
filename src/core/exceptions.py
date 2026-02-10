@@ -25,9 +25,41 @@ class WrongUsernameOrPasswordHTTPException(HTTPException):
         )
 
 
-class TokenExpiredHTTPException(HTTPException):
+class AccessTokenExpiredHTTPException(HTTPException):
     def __init__(self) -> None:
         super().__init__(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token expired",
+            detail="Access token expired",
+        )
+
+
+class RefreshTokenExpiredHTTPException(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token expired",
+        )
+
+
+class RefreshTokenCookieIsMissingHTTPException(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token cookie is missing",
+        )
+
+
+class InvalidRefreshTokenFormatHTTPException(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token format",
+        )
+
+
+class WrongRefreshTokenHTTPException(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Wrong refresh token",
         )
