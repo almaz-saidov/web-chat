@@ -1,5 +1,3 @@
-from typing import Optional
-
 from database.models import User
 from database.repositories import InsertOneRepository, SelectOneRepository
 
@@ -10,7 +8,7 @@ class UserRepository(
 ):
     _cls_model = User
 
-    async def get_user(self, **filter_by) -> Optional[User]:
+    async def get_user(self, **filter_by) -> User | None:
         return await self.select_one(**filter_by)
 
     async def create_user(self, data: dict[str, str]) -> User:

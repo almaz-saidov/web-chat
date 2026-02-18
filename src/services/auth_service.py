@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
-from typing import Any, Optional
+from typing import Any
 
 import bcrypt
 from fastapi import Depends, Request, Response
@@ -102,7 +102,7 @@ class AuthService:
         if current_time >= refresh_token_from_db.expires_at:
             raise RefreshTokenExpiredHTTPException()
 
-    async def _get_user(self, **filter_by) -> Optional[User]:
+    async def _get_user(self, **filter_by) -> User | None:
         user = await self.__user_service.get_user(**filter_by)
         return user
 

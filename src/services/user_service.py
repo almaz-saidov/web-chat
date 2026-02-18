@@ -11,7 +11,7 @@ from services.db_service import DbService
 
 
 class UserService(DbService[UserRepository]):
-    async def get_user(self, **filter_by) -> Optional[User]:
+    async def get_user(self, **filter_by) -> User | None:
         return await self._repository.get_user(**filter_by)
 
     async def create_user(self, user_data: dict[str, str]) -> User:

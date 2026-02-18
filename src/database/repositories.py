@@ -1,4 +1,4 @@
-from typing import Generic, Optional, Type, TypeVar, cast
+from typing import Generic, Type, TypeVar, cast
 
 from sqlalchemy import delete, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,9 +9,9 @@ MODEL_TYPE = TypeVar("MODEL_TYPE", bound=Base)
 
 
 class Repository(Generic[MODEL_TYPE]):
-    _cls_model: Optional[Type[MODEL_TYPE]] = None
+    _cls_model: Type[MODEL_TYPE] | None = None
 
-    def __init__(self, session: AsyncSession, model: Optional[Type[MODEL_TYPE]] = None) -> None:
+    def __init__(self, session: AsyncSession, model: Type[MODEL_TYPE] | None = None) -> None:
         self._session = session
         self._model: Type[MODEL_TYPE]
 
@@ -32,7 +32,7 @@ class InsertOneRepository(Repository[MODEL_TYPE]):
 
 
 class SelectOneRepository(Repository[MODEL_TYPE]):
-    async def select_one(self, **filter_by) -> Optional[MODEL_TYPE]:
+    async def select_one(self, **filter_by) -> MODEL_TYPE | None:
         stmt = select(self._model).filter_by(**filter_by).limit(1)
         result = await self._session.execute(stmt)
 

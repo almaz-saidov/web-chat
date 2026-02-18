@@ -1,6 +1,6 @@
 import uuid
 from functools import lru_cache
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +18,7 @@ class RefreshTokenService(DbService[RefreshTokenRepository]):
 
         return await self._repository.create_token(data)
 
-    async def get_token(self, **filter_by) -> Optional[RefreshToken]:
+    async def get_token(self, **filter_by) -> RefreshToken:
         refresh_token = await self._repository.get_token(**filter_by)
 
         return refresh_token

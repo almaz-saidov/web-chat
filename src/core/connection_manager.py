@@ -1,5 +1,3 @@
-from typing import Optional
-
 from fastapi import WebSocket
 
 
@@ -11,11 +9,12 @@ class ConnectionManager:
         await websocket.accept()
         self.active_connections[websocket] = username
 
-    def disconnect(self, websocket: WebSocket) -> Optional[str]:
+    def disconnect(self, websocket: WebSocket) -> str | None:
         if websocket in self.active_connections:
             username = self.active_connections[websocket]
             del self.active_connections[websocket]
             return username
+        return None
 
     async def broadcast(self, message: str) -> None:
         for connection in self.active_connections:

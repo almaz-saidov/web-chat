@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 from database.models import RefreshToken
 from database.repositories import (ForceDeleteRepository, InsertOneRepository,
@@ -18,5 +18,5 @@ class RefreshTokenRepository(
     async def create_token(self, data: dict[str, Any]) -> RefreshToken:
         return await self.insert_one(data)
 
-    async def get_token(self, **filter_by) -> Optional[RefreshToken]:
+    async def get_token(self, **filter_by) -> RefreshToken | None:
         return await self.select_one(**filter_by)
