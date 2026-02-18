@@ -7,7 +7,8 @@ import bcrypt
 from fastapi import Depends, Request, Response
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
-from api.schemas import LocalStorageUserData, TokenInfo, UserCreate, UserLogin
+from api.schemas import (AccessTokenSchema, LocalStorageUserSchema,
+                         UserCreateSchema, UserLoginSchema)
 from core.exceptions import (AccessTokenExpiredHTTPException,
                              InvalidTokenHTTPException,
                              RefreshTokenExpiredHTTPException,
@@ -35,21 +36,21 @@ class AuthService:
         self.__refresh_token_service = refresh_token_service
         self.__cookies_service = cookies_service
 
-    async def register_user(self, user_data: UserCreate) -> User:
+    async def register_user(self, user_data: UserCreateSchema) -> User:
         user = await self._get_user(username=user_data.username)
         if user:
             raise UserAlreadyExistsHTTPException()
 
         return await self._register_user_in_db(user_data)
 
-    async def authenticate_user(self, login_data: UserLogin, response: Response) -> TokenInfo:
+    async def authenticate_user(self, login_data: UserLoginSchema, response: Response) -> AccessTokenSchema:
         user = await self._get_user(username=login_data.username)
         if not user or not self._verify_password(login_data.password, user.password_hash):
             raise WrongUsernameOrPasswordHTTPException()
 
         access_token = await self._create_tokens(user, response)
 
-        return TokenInfo(access_token=access_token)
+        return AccessTokenSchema(access_token=access_token)
 
     async def authorize_user(self, token: str) -> User:
         try:
@@ -62,7 +63,7 @@ class AuthService:
         user = await self._get_user_via_payload(payload)
         return user
 
-    async def refresh_tokens(self, user_data: LocalStorageUserData, request: Request, response: Response) -> TokenInfo:
+    async def refresh_tokens(self, user_data: LocalStorageUserSchema, request: Request, response: Response) -> AccessTokenSchema:
         refresh_token_from_cookies_str = self.__cookies_service.get_refresh_token_from_cookies(request)
         refresh_token_from_cookies = self.__refresh_token_service.validate_refresh_token_str(refresh_token_from_cookies_str)
 
@@ -71,7 +72,7 @@ class AuthService:
         user = await self._get_user(username=user_data.username)
         access_token = await self._create_tokens(user, response)
 
-        return TokenInfo(access_token=access_token)
+        return AccessTokenSchema(access_token=access_token)
 
     async def _create_tokens(self, user: User, response: Response) -> str:
         jwt_payload = self._get_jwt_payload(user)
@@ -105,7 +106,7 @@ class AuthService:
         user = await self.__user_service.get_user(**filter_by)
         return user
 
-    async def _register_user_in_db(self, data: UserCreate) -> User:
+    async def _register_user_in_db(self, data: UserCreateSchema) -> User:
         user = await self.__user_service.create_user({
             "username": data.username,
             "password_hash": self._hash_password(data.password),

@@ -5,7 +5,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
-class UserCreate(BaseModel):
+class UserCreateSchema(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     password: str = Field(..., min_length=6)
     password_confirmation: str = Field(..., min_length=6)
@@ -24,17 +24,17 @@ class UserCreate(BaseModel):
         return self
 
 
-class UserLogin(BaseModel):
+class UserLoginSchema(BaseModel):
     username: str
     password: str
 
 
-class LocalStorageUserData(BaseModel):
+class LocalStorageUserSchema(BaseModel):
     id: uuid.UUID
     username: str
 
 
-class UserResponse(BaseModel):
+class UserResponseSchema(BaseModel):
     id: uuid.UUID
     username: str
     created_at: datetime
@@ -43,6 +43,6 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 
-class TokenInfo(BaseModel):
+class AccessTokenSchema(BaseModel):
     access_token: str
     token_type: str = "Bearer"
