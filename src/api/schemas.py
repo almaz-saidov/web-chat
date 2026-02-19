@@ -29,11 +29,6 @@ class UserLoginSchema(BaseModel):
     password: str
 
 
-class LocalStorageUserSchema(BaseModel):
-    id: uuid.UUID
-    username: str
-
-
 class UserResponseSchema(BaseModel):
     id: uuid.UUID
     username: str

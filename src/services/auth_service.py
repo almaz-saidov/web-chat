@@ -7,15 +7,15 @@ import bcrypt
 from fastapi import Depends, Request, Response
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
-from api.schemas import (AccessTokenSchema, LocalStorageUserSchema,
-                         UserCreateSchema, UserLoginSchema)
+from api.schemas import (AccessTokenSchema, UserCreateSchema, UserLoginSchema,
+                         UserResponseSchema)
 from core.exceptions import (AccessTokenExpiredHTTPException,
                              InvalidTokenHTTPException,
                              RefreshTokenExpiredHTTPException,
                              UserAlreadyExistsHTTPException,
                              WrongRefreshTokenHTTPException,
                              WrongUsernameOrPasswordHTTPException)
-from database.models import User
+from database.models import RefreshToken, User
 from services.cookies_service import CookiesService, get_cookies_service
 from services.jwt_service import JWTService, get_jwt_service
 from services.refresh_token_service import (RefreshTokenService,
@@ -36,13 +36,13 @@ class AuthService:
         self.__refresh_token_service = refresh_token_service
         self.__cookies_service = cookies_service
 
-    async def register_user(self, user_create_data: UserCreateSchema) -> User:
+    async def register_user(self, user_create_data: UserCreateSchema) -> UserResponseSchema:
         user = await self.__user_service.get_user(username=user_create_data.username)
         if user:
             raise UserAlreadyExistsHTTPException()
 
         user = await self.__user_service.create_user(user_create_data=user_create_data)
-        return user
+        return UserResponseSchema.model_validate(user)
 
     async def authenticate_user(self, login_data: UserLoginSchema, response: Response) -> AccessTokenSchema:
         user = await self.__user_service.get_user(username=login_data.username)
@@ -64,13 +64,13 @@ class AuthService:
         user = await self._get_user_via_payload(payload)
         return user
 
-    async def refresh_tokens(self, user_data: LocalStorageUserSchema, request: Request, response: Response) -> AccessTokenSchema:
+    async def refresh_tokens(self, request: Request, response: Response) -> AccessTokenSchema:
         refresh_token_from_cookies_str = self.__cookies_service.get_refresh_token_from_cookies(request)
         refresh_token_from_cookies = self.__refresh_token_service.validate_refresh_token_str(refresh_token_from_cookies_str)
 
-        await self._validate_refresh_token(refresh_token_from_cookies)
+        refresh_token_from_db = await self._validate_refresh_token(refresh_token_from_cookies)
 
-        user = await self.__user_service.get_user(username=user_data.username)
+        user = await self.__user_service.get_user(id=refresh_token_from_db.user_id)
         access_token = await self._create_tokens(user, response)
 
         return AccessTokenSchema(access_token=access_token)
@@ -94,7 +94,7 @@ class AuthService:
             raise InvalidTokenHTTPException()
         return user
 
-    async def _validate_refresh_token(self, refresh_token_from_cookies: uuid.UUID) -> None:
+    async def _validate_refresh_token(self, refresh_token_from_cookies: uuid.UUID) -> RefreshToken:
         refresh_token_from_db = await self.__refresh_token_service.get_token(refresh_token=refresh_token_from_cookies)
         if not refresh_token_from_db:
             raise WrongRefreshTokenHTTPException()
@@ -102,6 +102,8 @@ class AuthService:
         current_time = datetime.now(timezone.utc)
         if current_time >= refresh_token_from_db.expires_at:
             raise RefreshTokenExpiredHTTPException()
+
+        return refresh_token_from_db
 
     def _hash_password(self, password: str) -> str:
         salt = bcrypt.gensalt()
@@ -124,7 +126,7 @@ class AuthService:
     def _get_refresh_token_creation_data(self, user: User) -> dict[str, Any]:
         refresh_token_creation_data = {
             "user_id": user.id,
-            "expires_at": datetime.now() + timedelta(days=30),
+            "expires_at": datetime.now(timezone.utc) + timedelta(days=30),
         }
         return refresh_token_creation_data
 
