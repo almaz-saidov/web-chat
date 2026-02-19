@@ -8,28 +8,28 @@ from core.config import settings
 
 class JWTService:
     def encode_jwt(
-        self,
-        payload: dict[str, str | int],
-        private_key: str = settings.PRIVATE_KEY_PATH.read_text(),
-        algorithm: str = settings.ALGORITHM,
-        expire_minutes: int = settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+            self,
+            payload: dict[str, str | int],
+            private_key: str = settings.PRIVATE_KEY_PATH.read_text(),
+            algorithm: str = settings.ALGORITHM,
+            expire_minutes: int = settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     ) -> str:
         to_encode = payload.copy()
 
         expire = datetime.now(timezone.utc) + timedelta(minutes=expire_minutes)
         to_encode.update(exp=int(expire.timestamp()))
 
-        return jwt.encode(to_encode, private_key, algorithm)
+        return jwt.encode(payload=to_encode, key=private_key, algorithm=algorithm)
 
     def decode_jwt(
-        self,
-        token: str,
-        public_key: str = settings.PUBLIC_KEY_PATH.read_text(),
-        algorithm: str = settings.ALGORITHM,
+            self,
+            token: str,
+            public_key: str = settings.PUBLIC_KEY_PATH.read_text(),
+            algorithm: str = settings.ALGORITHM,
     ) -> dict[str, Any]:
         return jwt.decode(
-            token,
-            public_key,
+            jwt=token,
+            key=public_key,
             algorithms=[algorithm],
             options={
                 "verify_exp": True,

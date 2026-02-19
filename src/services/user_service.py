@@ -13,11 +13,11 @@ class UserService(DbService[UserRepository]):
         return await self._repository.get_user(**filter_by)
 
     async def create_user(self, user_create_data: UserCreateSchema) -> User:
-        return await self._repository.create_user(user_create_data.model_dump())
+        return await self._repository.create_user(data=user_create_data.model_dump())
 
     def _create_repository(self) -> UserRepository:
-        return UserRepository(self._session)
+        return UserRepository(session=self._session)
 
 
 def get_user_service(session: AsyncSession = Depends(get_uow_session)) -> UserService:
-    return UserService(session)
+    return UserService(session=session)

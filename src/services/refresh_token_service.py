@@ -13,9 +13,9 @@ from services.db_service import DbService
 
 class RefreshTokenService(DbService[RefreshTokenRepository]):
     async def create_token(self, data: dict[str, Any]) -> RefreshToken:
-        await self._force_delete_existing_tokens(data)
+        await self._force_delete_existing_tokens(data=data)
 
-        return await self._repository.create_token(data)
+        return await self._repository.create_token(data=data)
 
     async def get_token(self, **filter_by) -> RefreshToken:
         refresh_token = await self._repository.get_token(**filter_by)
@@ -34,8 +34,8 @@ class RefreshTokenService(DbService[RefreshTokenRepository]):
             await self._repository.force_delete_tokens(user_id=user_id)
 
     def _create_repository(self) -> RefreshTokenRepository:
-        return RefreshTokenRepository(self._session)
+        return RefreshTokenRepository(session=self._session)
 
 
 def get_refresh_token_service(session: AsyncSession = Depends(get_uow_session)) -> RefreshTokenService:
-    return RefreshTokenService(session)
+    return RefreshTokenService(session=session)

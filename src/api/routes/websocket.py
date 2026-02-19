@@ -13,4 +13,4 @@ async def websocket_endpoint(
     websocket_service: WebSocketService = Depends(get_websocket_service),
     user: User = Depends(get_current_user_from_ws),
 ):
-    await websocket_service.handle_websocket(websocket, user.username)
+    await websocket_service.handle_websocket(websocket=websocket, username=user.username)
