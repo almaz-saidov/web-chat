@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AccessTokenSchema(BaseModel):
-    access_token: str
-    token_type: str = "Bearer"
+    access_token: str = Field(description="JWT токен доступа")
+    token_type: str = Field(default="Bearer", description="Тип токена")

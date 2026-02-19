@@ -6,9 +6,9 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class UserCreateSchema(BaseModel):
-    username: str = Field(..., min_length=3, max_length=50)
-    password: str = Field(..., min_length=6)
-    password_confirmation: str = Field(..., min_length=6)
+    username: str = Field(..., min_length=3, max_length=50, description="Имя пользователя")
+    password: str = Field(..., min_length=6, description="Пароль")
+    password_confirmation: str = Field(..., min_length=6, description="Подтверждение пароля")
 
     @field_validator("username")
     @classmethod
@@ -25,14 +25,14 @@ class UserCreateSchema(BaseModel):
 
 
 class UserLoginSchema(BaseModel):
-    username: str
-    password: str
+    username: str = Field(..., min_length=3, max_length=50, description="Имя пользователя")
+    password: str = Field(..., description="Пароль пользователя")
 
 
 class UserResponseSchema(BaseModel):
-    id: uuid.UUID
-    username: str
-    created_at: datetime
+    id: uuid.UUID = Field(..., description="Уникальный идентификатор пользователя в формате UUID")
+    username: str = Field(..., description="Имя пользователя")
+    created_at: datetime = Field(..., description="Дата и время регистрации пользователя")
 
     class Config:
         from_attributes = True
