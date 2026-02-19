@@ -9,10 +9,10 @@ router = APIRouter(prefix="/auth", tags=["Authorization"])
 
 @router.post("/register", response_model=UserResponseSchema, status_code=status.HTTP_201_CREATED)
 async def register_user(
-    user_data: UserCreateSchema,
+    user_create_data: UserCreateSchema,
     auth_service: AuthService = Depends(get_auth_service),
 ):
-    return await auth_service.register_user(user_data=user_data)
+    return await auth_service.register_user(user_create_data=user_create_data)
 
 
 @router.post("/login", response_model=AccessTokenSchema, status_code=status.HTTP_200_OK)

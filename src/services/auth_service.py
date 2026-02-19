@@ -36,12 +36,13 @@ class AuthService:
         self.__refresh_token_service = refresh_token_service
         self.__cookies_service = cookies_service
 
-    async def register_user(self, user_data: UserCreateSchema) -> User:
-        user = await self.__user_service.get_user(username=user_data.username)
+    async def register_user(self, user_create_data: UserCreateSchema) -> User:
+        user = await self.__user_service.get_user(username=user_create_data.username)
         if user:
             raise UserAlreadyExistsHTTPException()
 
-        return await self._register_user_in_db(user_data)
+        user = await self.__user_service.create_user(user_create_data=user_create_data)
+        return user
 
     async def authenticate_user(self, login_data: UserLoginSchema, response: Response) -> AccessTokenSchema:
         user = await self.__user_service.get_user(username=login_data.username)
@@ -101,13 +102,6 @@ class AuthService:
         current_time = datetime.now(timezone.utc)
         if current_time >= refresh_token_from_db.expires_at:
             raise RefreshTokenExpiredHTTPException()
-
-    async def _register_user_in_db(self, data: UserCreateSchema) -> User:
-        user = await self.__user_service.create_user({
-            "username": data.username,
-            "password_hash": self._hash_password(data.password),
-        })
-        return user
 
     def _hash_password(self, password: str) -> str:
         salt = bcrypt.gensalt()
