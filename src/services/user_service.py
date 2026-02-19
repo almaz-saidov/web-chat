@@ -1,10 +1,10 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.schemas import UserCreateSchema
 from database.models import User
 from database.unit_of_work import get_uow_session
 from repositories.user_repository import UserRepository
+from schemas.user import UserCreateSchema
 from services.db_service import DbService
 
 

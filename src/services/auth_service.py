@@ -7,8 +7,6 @@ import bcrypt
 from fastapi import Depends, Request, Response
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
-from api.schemas import (AccessTokenSchema, UserCreateSchema, UserLoginSchema,
-                         UserResponseSchema)
 from core.exceptions import (AccessTokenExpiredHTTPException,
                              InvalidTokenHTTPException,
                              RefreshTokenExpiredHTTPException,
@@ -16,6 +14,8 @@ from core.exceptions import (AccessTokenExpiredHTTPException,
                              WrongRefreshTokenHTTPException,
                              WrongUsernameOrPasswordHTTPException)
 from database.models import RefreshToken, User
+from schemas.access_token import AccessTokenSchema
+from schemas.user import UserCreateSchema, UserLoginSchema, UserResponseSchema
 from services.cookies_service import CookiesService, get_cookies_service
 from services.jwt_service import JWTService, get_jwt_service
 from services.refresh_token_service import (RefreshTokenService,
