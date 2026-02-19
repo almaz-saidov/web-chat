@@ -36,8 +36,3 @@ class UserResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
-
-
-class AccessTokenSchema(BaseModel):
-    access_token: str
-    token_type: str = "Bearer"
