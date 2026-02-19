@@ -1,5 +1,3 @@
-from functools import lru_cache
-
 from fastapi import WebSocket, WebSocketDisconnect
 
 from core.connection_manager import manager
@@ -27,6 +25,5 @@ class WebSocketService:
             await manager.broadcast(f"{disconnected_user} left the chat.")
 
 
-@lru_cache
 def get_websocket_service() -> WebSocketService:
     return WebSocketService()

@@ -1,5 +1,3 @@
-from functools import lru_cache
-
 from fastapi import Request, Response
 
 from core.config import settings
@@ -28,6 +26,5 @@ class CookiesService:
         return refresh_token_str
 
 
-@lru_cache
 def get_cookies_service() -> CookiesService:
     return CookiesService()

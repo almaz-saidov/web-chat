@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-from functools import lru_cache
 from typing import Any
 
 import jwt
@@ -39,6 +38,5 @@ class JWTService:
         )
 
 
-@lru_cache
 def get_jwt_service() -> JWTService:
     return JWTService()

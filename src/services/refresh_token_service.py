@@ -1,5 +1,4 @@
 import uuid
-from functools import lru_cache
 from typing import Any
 
 from fastapi import Depends
@@ -38,6 +37,5 @@ class RefreshTokenService(DbService[RefreshTokenRepository]):
         return RefreshTokenRepository(self._session)
 
 
-@lru_cache
 def get_refresh_token_service(session: AsyncSession = Depends(get_uow_session)) -> RefreshTokenService:
     return RefreshTokenService(session)
