@@ -7,7 +7,7 @@ from services.auth_service import AuthService, get_auth_service
 router = APIRouter(prefix="/auth", tags=["Authorization"])
 
 
-@router.post("/register", response_model=UserResponseSchema, status_code=status.HTTP_201_CREATED)
+@router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserResponseSchema)
 async def register_user(
     user_create_data: UserCreateSchema,
     auth_service: AuthService = Depends(get_auth_service),
@@ -15,7 +15,7 @@ async def register_user(
     return await auth_service.register_user(user_create_data=user_create_data)
 
 
-@router.post("/login", response_model=AccessTokenSchema, status_code=status.HTTP_200_OK)
+@router.post("/login", status_code=status.HTTP_200_OK, response_model=AccessTokenSchema)
 async def login_user(
     login_data: UserLoginSchema,
     response: Response,
@@ -24,7 +24,7 @@ async def login_user(
     return await auth_service.authenticate_user(login_data=login_data, response=response)
 
 
-@router.post("/refresh", response_model=AccessTokenSchema, status_code=status.HTTP_200_OK)
+@router.post("/refresh", status_code=status.HTTP_200_OK, response_model=AccessTokenSchema)
 async def refresh_tokens(
     request: Request,
     response: Response,

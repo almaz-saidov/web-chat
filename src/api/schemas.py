@@ -10,17 +10,17 @@ class UserCreateSchema(BaseModel):
     password: str = Field(..., min_length=6)
     password_confirmation: str = Field(..., min_length=6)
 
-    @field_validator('username')
+    @field_validator("username")
     @classmethod
     def validate_username(cls, v):
-        if not re.match(r'^[a-zA-Z0-9_]+$', v):
-            raise ValueError('Username can only contain letters, numbers and underscores')
+        if not re.match(r"^[a-zA-Z0-9_]+$", v):
+            raise ValueError("Username can only contain letters, numbers and underscores")
         return v
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_passwords_match(self):
         if self.password != self.password_confirmation:
-            raise ValueError('Passwords do not match')
+            raise ValueError("Passwords do not match")
         return self
 
 
