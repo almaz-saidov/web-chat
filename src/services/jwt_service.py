@@ -9,7 +9,7 @@ from core.config import settings
 class JWTService:
     def encode_jwt(
         self,
-        payload: dict[str, str],
+        payload: dict[str, str | int],
         private_key: str = settings.PRIVATE_KEY_PATH.read_text(),
         algorithm: str = settings.ALGORITHM,
         expire_minutes: int = settings.ACCESS_TOKEN_EXPIRE_MINUTES,
