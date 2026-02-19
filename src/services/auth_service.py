@@ -37,14 +37,14 @@ class AuthService:
         self.__cookies_service = cookies_service
 
     async def register_user(self, user_data: UserCreateSchema) -> User:
-        user = await self._get_user(username=user_data.username)
+        user = await self.__user_service.get_user(username=user_data.username)
         if user:
             raise UserAlreadyExistsHTTPException()
 
         return await self._register_user_in_db(user_data)
 
     async def authenticate_user(self, login_data: UserLoginSchema, response: Response) -> AccessTokenSchema:
-        user = await self._get_user(username=login_data.username)
+        user = await self.__user_service.get_user(username=login_data.username)
         if not user or not self._verify_password(login_data.password, user.password_hash):
             raise WrongUsernameOrPasswordHTTPException()
 
@@ -69,7 +69,7 @@ class AuthService:
 
         await self._validate_refresh_token(refresh_token_from_cookies)
 
-        user = await self._get_user(username=user_data.username)
+        user = await self.__user_service.get_user(username=user_data.username)
         access_token = await self._create_tokens(user, response)
 
         return AccessTokenSchema(access_token=access_token)
@@ -88,7 +88,7 @@ class AuthService:
         user_id = uuid.UUID(payload.get("sub"))
         username: str = payload.get("username")
 
-        user = await self._get_user(id=user_id, username=username)
+        user = await self.__user_service.get_user(id=user_id, username=username)
         if not user:
             raise InvalidTokenHTTPException()
         return user
@@ -101,10 +101,6 @@ class AuthService:
         current_time = datetime.now(timezone.utc)
         if current_time >= refresh_token_from_db.expires_at:
             raise RefreshTokenExpiredHTTPException()
-
-    async def _get_user(self, **filter_by) -> User | None:
-        user = await self.__user_service.get_user(**filter_by)
-        return user
 
     async def _register_user_in_db(self, data: UserCreateSchema) -> User:
         user = await self.__user_service.create_user({
