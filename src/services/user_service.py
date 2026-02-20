@@ -1,23 +1,27 @@
+import uuid
+
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.models import User
-from database.unit_of_work import get_uow_session
-from repositories.user_repository import UserRepository
-from schemas.user import UserCreateSchema
-from services.db_service import DbService
+from database.repositories.user_repository import UserRepository
+from database.session import get_session
+from schemas.user import UserCreateDatabaseSchema, UserSchema
+from services.db_service import DatabaseService
 
 
-class UserService(DbService[UserRepository]):
-    async def get_user(self, **filter_by) -> User | None:
-        return await self._repository.get_user(**filter_by)
+class UserService(DatabaseService[UserRepository]):
+    async def get_by_id(self, user_id: uuid.UUID) -> UserSchema:
+        return await self._repository.get_by_id(user_id=user_id)
 
-    async def create_user(self, user_create_data: UserCreateSchema) -> User:
-        return await self._repository.create_user(data=user_create_data.model_dump())
+    async def get_by_username(self, username: str) -> UserSchema:
+        return await self._repository.get_by_username(username=username)
+
+    async def create(self, user_create_data: UserCreateDatabaseSchema) -> UserSchema:
+        return await self._repository.create(user_create_data=user_create_data)
 
     def _create_repository(self) -> UserRepository:
         return UserRepository(session=self._session)
 
 
-def get_user_service(session: AsyncSession = Depends(get_uow_session)) -> UserService:
+def get_user_service(session: AsyncSession = Depends(get_session)) -> UserService:
     return UserService(session=session)

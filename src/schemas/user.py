@@ -2,20 +2,40 @@ import re
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import (BaseModel, ConfigDict, Field, field_validator,
+                      model_validator)
 
 
-class UserCreateSchema(BaseModel):
-    username: str = Field(..., min_length=3, max_length=50, description="Имя пользователя")
-    password: str = Field(..., min_length=6, description="Пароль")
-    password_confirmation: str = Field(..., min_length=6, description="Подтверждение пароля")
+class BaseUserSchema(BaseModel):
+    id: uuid.UUID
+    username: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserResponseSchema(BaseUserSchema):
+    pass
+
+
+class UserSchema(BaseUserSchema):
+    password_hash: str
+
+
+class BaseUserOperationSchema(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
 
     @field_validator("username")
     @classmethod
-    def validate_username(cls, v):
+    def validate_username(cls, v: str) -> str:
         if not re.match(r"^[a-zA-Z0-9_]+$", v):
             raise ValueError("Username can only contain letters, numbers and underscores")
         return v
+
+
+class UserCreateSchema(BaseUserOperationSchema):
+    password: str = Field(..., min_length=6)
+    password_confirmation: str = Field(..., min_length=6)
 
     @model_validator(mode="after")
     def validate_passwords_match(self):
@@ -24,15 +44,10 @@ class UserCreateSchema(BaseModel):
         return self
 
 
-class UserLoginSchema(BaseModel):
-    username: str = Field(..., min_length=3, max_length=50, description="Имя пользователя")
-    password: str = Field(..., description="Пароль пользователя")
+class UserLoginSchema(BaseUserOperationSchema):
+    password: str = Field(...)
 
 
-class UserResponseSchema(BaseModel):
-    id: uuid.UUID = Field(..., description="Уникальный идентификатор пользователя в формате UUID")
-    username: str = Field(..., description="Имя пользователя")
-    created_at: datetime = Field(..., description="Дата и время регистрации пользователя")
-
-    class Config:
-        from_attributes = True
+class UserCreateDatabaseSchema(BaseModel):
+    username: str
+    password_hash: str
