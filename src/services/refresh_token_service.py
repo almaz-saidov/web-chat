@@ -1,24 +1,24 @@
 import uuid
-from typing import Any
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions import InvalidRefreshTokenFormatHTTPException
-from database.models import RefreshToken
-from database.unit_of_work import get_uow_session
-from repositories.refresh_token_repository import RefreshTokenRepository
-from services.db_service import DbService
+from database.repositories.refresh_token_repository import \
+    RefreshTokenRepository
+from database.session import get_session
+from schemas.refresh_token import RefreshTokenCreateSchema, RefreshTokenSchema
+from services.db_service import DatabaseService
 
 
-class RefreshTokenService(DbService[RefreshTokenRepository]):
-    async def create_token(self, data: dict[str, Any]) -> RefreshToken:
-        await self._force_delete_existing_tokens(data=data)
+class RefreshTokenService(DatabaseService[RefreshTokenRepository]):
+    async def create_token(self, refresh_token_create_data: RefreshTokenCreateSchema) -> RefreshTokenSchema:
+        await self._force_delete_existing_tokens(refresh_token_create_data=refresh_token_create_data)
 
-        return await self._repository.create_token(data=data)
+        return await self._repository.create(refresh_token_create_data=refresh_token_create_data)
 
-    async def get_token(self, **filter_by) -> RefreshToken:
-        refresh_token = await self._repository.get_token(**filter_by)
+    async def get_by_token(self, refresh_token: uuid.UUID) -> RefreshTokenSchema:
+        refresh_token = await self._repository.get_by_token(token=refresh_token)
 
         return refresh_token
 
@@ -28,14 +28,13 @@ class RefreshTokenService(DbService[RefreshTokenRepository]):
         except ValueError:
             raise InvalidRefreshTokenFormatHTTPException()
 
-    async def _force_delete_existing_tokens(self, data: dict[str, Any]) -> None:
-        user_id = data.get("user_id")
-        if await self.get_token(user_id=user_id):
-            await self._repository.force_delete_tokens(user_id=user_id)
+    async def _force_delete_existing_tokens(self, refresh_token_create_data: RefreshTokenCreateSchema) -> None:
+        if await self._repository.get_by_user_id(user_id=refresh_token_create_data.user_id):
+            await self._repository.force_delete_by_user_id(user_id=refresh_token_create_data.user_id)
 
     def _create_repository(self) -> RefreshTokenRepository:
         return RefreshTokenRepository(session=self._session)
 
 
-def get_refresh_token_service(session: AsyncSession = Depends(get_uow_session)) -> RefreshTokenService:
+def get_refresh_token_service(session: AsyncSession = Depends(get_session)) -> RefreshTokenService:
     return RefreshTokenService(session=session)

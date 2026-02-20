@@ -2,11 +2,11 @@ from fastapi import Request, Response
 
 from core.config import settings
 from core.exceptions import RefreshTokenCookieIsMissingHTTPException
-from database.models import RefreshToken
+from schemas.refresh_token import RefreshTokenSchema
 
 
 class CookiesService:
-    def set_cookies(self, response: Response, refresh_token: RefreshToken) -> None:
+    def set_cookies(self, response: Response, refresh_token: RefreshTokenSchema) -> None:
         response.set_cookie(
             key="refresh_token",
             value=str(refresh_token.refresh_token),
