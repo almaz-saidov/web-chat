@@ -1,4 +1,4 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException, WebSocketException, status
 
 
 class InvalidTokenHTTPException(HTTPException):
@@ -62,4 +62,20 @@ class WrongRefreshTokenHTTPException(HTTPException):
         super().__init__(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Wrong refresh token",
+        )
+
+
+class TokenIsRequiredWebSocketException(WebSocketException):
+    def __init__(self) -> None:
+        super().__init__(
+            code=status.WS_1008_POLICY_VIOLATION,
+            reason="Invalid or expired token",
+        )
+
+
+class TokenIInvalidOrExpiredWebSocketException(WebSocketException):
+    def __init__(self) -> None:
+        super().__init__(
+            code=status.WS_1008_POLICY_VIOLATION,
+            reason="Invalid or expired token",
         )

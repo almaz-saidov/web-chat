@@ -1,6 +1,7 @@
-from fastapi import Depends, WebSocket, WebSocketException, status
+from fastapi import Depends, WebSocket
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from core.exceptions import TokenIsRequiredWebSocketException
 from schemas.user import UserSchema
 from services.auth_service import AuthService, get_auth_service
 
@@ -21,10 +22,7 @@ async def get_current_user_from_ws(
     token = websocket.query_params.get("token")
 
     if not token:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        raise WebSocketException(
-            code=status.WS_1008_POLICY_VIOLATION,
-            reason="Token is required",
-        )
+        raise TokenIsRequiredWebSocketException()
 
-    return await auth_service.authorize_user(token)
+    user = await auth_service.authorize_websocket_user(token)
+    return user

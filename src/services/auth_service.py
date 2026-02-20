@@ -10,6 +10,7 @@ from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from core.exceptions import (AccessTokenExpiredHTTPException,
                              InvalidTokenHTTPException,
                              RefreshTokenExpiredHTTPException,
+                             TokenIInvalidOrExpiredWebSocketException,
                              UserAlreadyExistsHTTPException,
                              WrongRefreshTokenHTTPException,
                              WrongUsernameOrPasswordHTTPException)
@@ -62,13 +63,20 @@ class AuthService:
     async def authorize_user(self, token: str) -> UserSchema:
         try:
             payload = self.__jwt_service.decode_jwt(token=token)
+            user = await self._get_user_via_payload(payload=payload)
+            return user
         except ExpiredSignatureError:
             raise AccessTokenExpiredHTTPException()
         except InvalidTokenError:
             raise InvalidTokenHTTPException()
 
-        user = await self._get_user_via_payload(payload=payload)
-        return user
+    async def authorize_websocket_user(self, token: str) -> UserSchema:
+        try:
+            payload = self.__jwt_service.decode_jwt(token=token)
+            user = await self._get_user_via_payload(payload=payload)
+            return user
+        except (ExpiredSignatureError, InvalidTokenError):
+            raise TokenIInvalidOrExpiredWebSocketException()
 
     async def refresh_tokens(self, request: Request, response: Response) -> AccessTokenSchema:
         refresh_token_from_cookies_str = self.__cookies_service.get_refresh_token_from_cookies(request=request)
