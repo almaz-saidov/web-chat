@@ -9,15 +9,15 @@ security = HTTPBearer()
 
 
 async def get_current_user(
-        credentials: HTTPAuthorizationCredentials = Depends(security),
-        auth_service: AuthService = Depends(get_auth_service),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    auth_service: AuthService = Depends(get_auth_service),
 ) -> UserSchema:
     return await auth_service.authorize_user(credentials.credentials)
 
 
 async def get_current_user_from_ws(
-        websocket: WebSocket,
-        auth_service: AuthService = Depends(get_auth_service),
+    websocket: WebSocket,
+    auth_service: AuthService = Depends(get_auth_service),
 ) -> UserSchema:
     token = websocket.query_params.get("token")
 

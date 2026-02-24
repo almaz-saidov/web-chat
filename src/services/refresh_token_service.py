@@ -4,8 +4,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions import InvalidRefreshTokenFormatHTTPException
-from database.repositories.refresh_token_repository import \
-    RefreshTokenRepository
+from database.repositories.refresh_token_repository import RefreshTokenRepository
 from database.session import get_session
 from schemas.refresh_token import RefreshTokenCreateSchema, RefreshTokenSchema
 from services.db_service import DatabaseService
