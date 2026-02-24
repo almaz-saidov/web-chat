@@ -17,6 +17,7 @@ from core.exceptions import (
     WrongUsernameOrPasswordHTTPException,
 )
 from schemas.access_token import AccessTokenSchema
+from schemas.jwt import JWTPayloadSchema
 from schemas.refresh_token import RefreshTokenCreateSchema, RefreshTokenSchema
 from schemas.user import UserCreateDatabaseSchema, UserCreateSchema, UserLoginSchema, UserResponseSchema, UserSchema
 from services.cookies_service import CookiesService, get_cookies_service
@@ -76,7 +77,7 @@ class AuthService:
             refresh_token_str=refresh_token_from_cookies_str
         )
 
-        await self.__refresh_token_service.delete_by_token(refresh_token=refresh_token_from_cookies)
+        await self.__refresh_token_service.delete_by_token(token=refresh_token_from_cookies)
         self.__cookies_service.delete_cookies(response=response)
 
     async def authorize_websocket_user(self, token: str) -> UserSchema:
@@ -103,7 +104,7 @@ class AuthService:
         return AccessTokenSchema(access_token=access_token)
 
     async def _create_tokens(self, user: UserSchema, response: Response) -> str:
-        jwt_payload = self._get_jwt_payload(user=user)
+        jwt_payload = JWTPayloadSchema(sub=str(user.id), username=user.username)
         access_token = self.__jwt_service.encode_jwt(payload=jwt_payload)
 
         refresh_token_create_data = self._get_refresh_token_creation_data(user=user)
@@ -120,9 +121,7 @@ class AuthService:
         return await self.__user_service.get_by_id(user_id=user_id)
 
     async def _validate_refresh_token(self, refresh_token_from_cookies: uuid.UUID) -> RefreshTokenSchema:
-        refresh_token_from_db = await self.__refresh_token_service.get_by_token(
-            refresh_token=refresh_token_from_cookies
-        )
+        refresh_token_from_db = await self.__refresh_token_service.get_by_token(token=refresh_token_from_cookies)
         if not refresh_token_from_db:
             raise WrongRefreshTokenHTTPException()
 
@@ -141,13 +140,6 @@ class AuthService:
             password.encode("utf-8"),
             hashed_password.encode("utf-8"),
         )
-
-    def _get_jwt_payload(self, user: UserSchema) -> dict[str, str]:
-        jwt_payload = {
-            "sub": str(user.id),
-            "username": user.username,
-        }
-        return jwt_payload
 
     def _get_refresh_token_creation_data(self, user: UserSchema) -> RefreshTokenCreateSchema:
         refresh_token_creation_data = RefreshTokenCreateSchema(

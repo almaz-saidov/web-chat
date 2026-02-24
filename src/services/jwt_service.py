@@ -4,22 +4,23 @@ from typing import Any
 import jwt
 
 from core.config import settings
+from schemas.jwt import JWTPayloadSchema
 
 
 class JWTService:
     def encode_jwt(
         self,
-        payload: dict[str, str | int],
+        payload: JWTPayloadSchema,
         private_key: str = settings.PRIVATE_KEY_PATH.read_text(),
         algorithm: str = settings.ALGORITHM,
         expire_minutes: int = settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     ) -> str:
-        to_encode = payload.copy()
+        to_encode = payload.model_copy()
 
         expire = datetime.now(timezone.utc) + timedelta(minutes=expire_minutes)
-        to_encode.update(exp=int(expire.timestamp()))
+        to_encode.exp = int(expire.timestamp())
 
-        return jwt.encode(payload=to_encode, key=private_key, algorithm=algorithm)
+        return jwt.encode(payload=to_encode.model_dump(), key=private_key, algorithm=algorithm)
 
     def decode_jwt(
         self,
@@ -31,10 +32,8 @@ class JWTService:
             jwt=token,
             key=public_key,
             algorithms=[algorithm],
-            options={
-                "verify_exp": True,
-                "require_exp": True,
-            },
+            verify_exp=True,
+            require=["exp"],
         )
 
 

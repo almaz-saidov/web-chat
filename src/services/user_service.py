@@ -18,7 +18,7 @@ class UserService(DatabaseService[UserRepository]):
             raise UserNotFoundHTTPException()
         return user
 
-    async def get_by_username(self, username: str) -> UserSchema:
+    async def get_by_username(self, username: str) -> UserSchema | None:
         return await self._repository.get_by_username(username=username)
 
     async def create(self, user_create_data: UserCreateDatabaseSchema) -> UserSchema:
