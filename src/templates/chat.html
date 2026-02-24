@@ -36,12 +36,36 @@
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
             padding: 20px;
             color: white;
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .header h1 {
             font-size: 28px;
             font-weight: 600;
+        }
+
+        .logout-btn {
+            padding: 8px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 16px;
+        }
+
+        .logout-btn:hover {
+            background: white;
+            color: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .logout-btn:active {
+            transform: translateY(0);
         }
 
         .messages-container {
@@ -126,6 +150,7 @@
     <div class="chat-container">
         <div class="header">
             <h1>WebChat</h1>
+            <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
 
         <div class="messages-container" id="messagesContainer">
@@ -134,10 +159,10 @@
 
         <div class="input-container">
             <div class="input-wrapper">
-                <input 
-                    type="text" 
-                    id="messageInput" 
-                    placeholder="Type a message..." 
+                <input
+                    type="text"
+                    id="messageInput"
+                    placeholder="Type a message..."
                     autocomplete="off"
                 >
                 <button id="sendBtn" onclick="sendMessage()">Send</button>
@@ -145,10 +170,43 @@
         </div>
     </div>
 
-<script>
+    <script>
+        // Logout function
+        async function logout() {
+            // Close WebSocket connection if open
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+
+            // Clear localStorage
+            localStorage.removeItem('access_token');
+
+            // Clear cookies
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin'
+            });
+
+            // Redirect to login page
+            window.location.href = 'login.html';
+        }
+
         // Connect to WebSocket
-        const token = localStorage.getItem('access_token');
+        let token = localStorage.getItem('access_token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
         const ws = new WebSocket(`ws://${window.location.host}/api/ws?token=${token}`);
+
+        // WebSocket error handler
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            logout();
+        };
 
         // WebSocket event handler
         ws.onmessage = (event) => {

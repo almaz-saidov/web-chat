@@ -1,6 +1,14 @@
 from fastapi import HTTPException, WebSocketException, status
 
 
+class UserNotFoundHTTPException(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+
 class InvalidTokenHTTPException(HTTPException):
     def __init__(self) -> None:
         super().__init__(

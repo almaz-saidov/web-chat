@@ -17,6 +17,15 @@ class CookiesService:
             path="/api/auth",
         )
 
+    def delete_cookies(self, response: Response) -> None:
+        response.delete_cookie(
+            key="refresh_token",
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            path="/api/auth",
+        )
+
     def get_refresh_token_from_cookies(self, request: Request) -> str:
         refresh_token_str = request.cookies.get("refresh_token")
 

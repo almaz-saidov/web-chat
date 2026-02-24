@@ -21,6 +21,9 @@ class RefreshTokenService(DatabaseService[RefreshTokenRepository]):
 
         return refresh_token
 
+    async def delete_by_token(self, refresh_token: uuid.UUID) -> None:
+        await self._repository.force_delete_by_token(refresh_token=refresh_token)
+
     def validate_refresh_token_str(self, refresh_token_str: str) -> uuid.UUID:
         try:
             return uuid.UUID(refresh_token_str)

@@ -36,3 +36,8 @@ class RefreshTokenRepository(BaseRepository):
         query = delete(RefreshToken).where(RefreshToken.user_id == user_id)
 
         await self._session.execute(query)
+
+    async def force_delete_by_token(self, refresh_token: uuid.UUID) -> None:
+        query = delete(RefreshToken).where(RefreshToken.refresh_token == refresh_token)
+
+        await self._session.execute(query)

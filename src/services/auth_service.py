@@ -7,31 +7,31 @@ import bcrypt
 from fastapi import Depends, Request, Response
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
-from core.exceptions import (AccessTokenExpiredHTTPException,
-                             InvalidTokenHTTPException,
-                             RefreshTokenExpiredHTTPException,
-                             TokenIsInvalidOrExpiredWebSocketException,
-                             UserAlreadyExistsHTTPException,
-                             WrongRefreshTokenHTTPException,
-                             WrongUsernameOrPasswordHTTPException)
+from core.exceptions import (
+    AccessTokenExpiredHTTPException,
+    InvalidTokenHTTPException,
+    RefreshTokenExpiredHTTPException,
+    TokenIsInvalidOrExpiredWebSocketException,
+    UserAlreadyExistsHTTPException,
+    WrongRefreshTokenHTTPException,
+    WrongUsernameOrPasswordHTTPException,
+)
 from schemas.access_token import AccessTokenSchema
 from schemas.refresh_token import RefreshTokenCreateSchema, RefreshTokenSchema
-from schemas.user import (UserCreateDatabaseSchema, UserCreateSchema,
-                          UserLoginSchema, UserResponseSchema, UserSchema)
+from schemas.user import UserCreateDatabaseSchema, UserCreateSchema, UserLoginSchema, UserResponseSchema, UserSchema
 from services.cookies_service import CookiesService, get_cookies_service
 from services.jwt_service import JWTService, get_jwt_service
-from services.refresh_token_service import (RefreshTokenService,
-                                            get_refresh_token_service)
+from services.refresh_token_service import RefreshTokenService, get_refresh_token_service
 from services.user_service import UserService, get_user_service
 
 
 class AuthService:
     def __init__(
-            self,
-            jwt_service: JWTService,
-            user_service: UserService,
-            refresh_token_service: RefreshTokenService,
-            cookies_service: CookiesService,
+        self,
+        jwt_service: JWTService,
+        user_service: UserService,
+        refresh_token_service: RefreshTokenService,
+        cookies_service: CookiesService,
     ) -> None:
         self.__jwt_service = jwt_service
         self.__user_service = user_service
@@ -70,6 +70,15 @@ class AuthService:
         except InvalidTokenError:
             raise InvalidTokenHTTPException()
 
+    async def logout_user(self, request: Request, response: Response) -> None:
+        refresh_token_from_cookies_str = self.__cookies_service.get_refresh_token_from_cookies(request=request)
+        refresh_token_from_cookies = self.__refresh_token_service.validate_refresh_token_str(
+            refresh_token_str=refresh_token_from_cookies_str
+        )
+
+        await self.__refresh_token_service.delete_by_token(refresh_token=refresh_token_from_cookies)
+        self.__cookies_service.delete_cookies(response=response)
+
     async def authorize_websocket_user(self, token: str) -> UserSchema:
         try:
             payload = self.__jwt_service.decode_jwt(token=token)
@@ -81,10 +90,12 @@ class AuthService:
     async def refresh_tokens(self, request: Request, response: Response) -> AccessTokenSchema:
         refresh_token_from_cookies_str = self.__cookies_service.get_refresh_token_from_cookies(request=request)
         refresh_token_from_cookies = self.__refresh_token_service.validate_refresh_token_str(
-            refresh_token_str=refresh_token_from_cookies_str)
+            refresh_token_str=refresh_token_from_cookies_str
+        )
 
         refresh_token_from_db = await self._validate_refresh_token(
-            refresh_token_from_cookies=refresh_token_from_cookies)
+            refresh_token_from_cookies=refresh_token_from_cookies
+        )
 
         user = await self.__user_service.get_by_id(user_id=refresh_token_from_db.user_id)
         access_token = await self._create_tokens(user=user, response=response)
@@ -97,7 +108,8 @@ class AuthService:
 
         refresh_token_create_data = self._get_refresh_token_creation_data(user=user)
         refresh_token = await self.__refresh_token_service.create_token(
-            refresh_token_create_data=refresh_token_create_data)
+            refresh_token_create_data=refresh_token_create_data
+        )
         self.__cookies_service.set_cookies(response=response, refresh_token=refresh_token)
 
         return access_token
@@ -105,14 +117,12 @@ class AuthService:
     async def _get_user_via_payload(self, payload: dict[str, Any]) -> UserSchema:
         user_id = uuid.UUID(payload.get("sub"))
 
-        user = await self.__user_service.get_by_id(user_id=user_id)
-        if not user:
-            raise InvalidTokenHTTPException()
-        return user
+        return await self.__user_service.get_by_id(user_id=user_id)
 
     async def _validate_refresh_token(self, refresh_token_from_cookies: uuid.UUID) -> RefreshTokenSchema:
         refresh_token_from_db = await self.__refresh_token_service.get_by_token(
-            refresh_token=refresh_token_from_cookies)
+            refresh_token=refresh_token_from_cookies
+        )
         if not refresh_token_from_db:
             raise WrongRefreshTokenHTTPException()
 
@@ -149,10 +159,14 @@ class AuthService:
 
 @lru_cache
 def get_auth_service(
-        jwt_service: JWTService = Depends(get_jwt_service),
-        user_service: UserService = Depends(get_user_service),
-        refresh_token_service: RefreshTokenService = Depends(get_refresh_token_service),
-        cookies_service: CookiesService = Depends(get_cookies_service),
+    jwt_service: JWTService = Depends(get_jwt_service),
+    user_service: UserService = Depends(get_user_service),
+    refresh_token_service: RefreshTokenService = Depends(get_refresh_token_service),
+    cookies_service: CookiesService = Depends(get_cookies_service),
 ) -> AuthService:
-    return AuthService(jwt_service=jwt_service, user_service=user_service, refresh_token_service=refresh_token_service,
-                       cookies_service=cookies_service)
+    return AuthService(
+        jwt_service=jwt_service,
+        user_service=user_service,
+        refresh_token_service=refresh_token_service,
+        cookies_service=cookies_service,
+    )
