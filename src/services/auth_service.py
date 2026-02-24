@@ -1,7 +1,6 @@
 import uuid
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
-from typing import Any
 
 import bcrypt
 from fastapi import Depends, Request, Response
@@ -115,10 +114,8 @@ class AuthService:
 
         return access_token
 
-    async def _get_user_via_payload(self, payload: dict[str, Any]) -> UserSchema:
-        user_id = uuid.UUID(payload.get("sub"))
-
-        return await self.__user_service.get_by_id(user_id=user_id)
+    async def _get_user_via_payload(self, payload: JWTPayloadSchema) -> UserSchema:
+        return await self.__user_service.get_by_id(user_id=uuid.UUID(payload.sub))
 
     async def _validate_refresh_token(self, refresh_token_from_cookies: uuid.UUID) -> RefreshTokenSchema:
         refresh_token_from_db = await self.__refresh_token_service.get_by_token(token=refresh_token_from_cookies)

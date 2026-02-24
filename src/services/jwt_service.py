@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-from typing import Any
 
 import jwt
 
@@ -27,14 +26,16 @@ class JWTService:
         token: str,
         public_key: str = settings.PUBLIC_KEY_PATH.read_text(),
         algorithm: str = settings.ALGORITHM,
-    ) -> dict[str, Any]:
-        return jwt.decode(
+    ) -> JWTPayloadSchema:
+        decoded_jwt = jwt.decode(
             jwt=token,
             key=public_key,
             algorithms=[algorithm],
             verify_exp=True,
             require=["exp"],
         )
+
+        return JWTPayloadSchema(**decoded_jwt)
 
 
 def get_jwt_service() -> JWTService:
