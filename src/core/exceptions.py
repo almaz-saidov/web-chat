@@ -69,11 +69,11 @@ class TokenIsRequiredWebSocketException(WebSocketException):
     def __init__(self) -> None:
         super().__init__(
             code=status.WS_1008_POLICY_VIOLATION,
-            reason="Invalid or expired token",
+            reason="Token is required",
         )
 
 
-class TokenIInvalidOrExpiredWebSocketException(WebSocketException):
+class TokenIsInvalidOrExpiredWebSocketException(WebSocketException):
     def __init__(self) -> None:
         super().__init__(
             code=status.WS_1008_POLICY_VIOLATION,
