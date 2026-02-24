@@ -171,17 +171,13 @@
     </div>
 
     <script>
-        // Logout function
         async function logout() {
-            // Close WebSocket connection if open
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.close();
             }
 
-            // Clear localStorage
             localStorage.removeItem('access_token');
 
-            // Clear cookies
             await fetch('/api/auth/logout', {
                 method: 'POST',
                 headers: {
@@ -190,11 +186,9 @@
                 credentials: 'same-origin'
             });
 
-            // Redirect to login page
             window.location.href = 'login.html';
         }
 
-        // Connect to WebSocket
         let token = localStorage.getItem('access_token');
         if (!token) {
             window.location.href = 'login.html';
@@ -202,18 +196,15 @@
 
         const ws = new WebSocket(`ws://${window.location.host}/api/ws?token=${token}`);
 
-        // WebSocket error handler
         ws.onerror = (error) => {
             console.error('WebSocket error:', error);
             logout();
         };
 
-        // WebSocket event handler
         ws.onmessage = (event) => {
             addMessage(event.data);
         };
 
-        // Add message to chat
         function addMessage(text) {
             const messagesContainer = document.getElementById('messagesContainer');
 
@@ -225,7 +216,6 @@
             scrollToBottom();
         }
 
-        // Send message
         function sendMessage() {
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
@@ -237,20 +227,17 @@
             }
         }
 
-        // Send on Enter
         document.getElementById('messageInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 sendMessage();
             }
         });
 
-        // Scroll to bottom
         function scrollToBottom() {
             const messagesContainer = document.getElementById('messagesContainer');
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Auto-focus input
         document.getElementById('messageInput').focus();
     </script>
 </body>
