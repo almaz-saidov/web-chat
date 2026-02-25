@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from core.config import settings
-from database.models.base import Base
+from database.models import Base
 
 
 class RefreshToken(Base):
