@@ -1,13 +1,13 @@
 import uvicorn
 from fastapi import FastAPI
 
+from api.router import router as api_router
 from core.config import settings
 from core.static import setup_static_files
-from websoket.router import router as ws_router
 
 app = FastAPI()
 
-app.include_router(ws_router)
+app.include_router(api_router)
 
 setup_static_files(app)
 
