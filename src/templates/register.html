@@ -162,7 +162,18 @@
                 } else {
                     const error = await response.json();
                     document.getElementById('error').style.display = 'block';
-                    document.getElementById('error').textContent = error.detail || 'Registration error';
+
+                    if (response.status === 422 && error.detail) {
+                        const validationError = error.detail.find(err => err.loc.includes('username'));
+                        if (validationError) {
+                            const errorMessage = validationError.msg.replace(/^Value error,\s*/, '');
+                            document.getElementById('error').textContent = errorMessage;
+                        } else {
+                            document.getElementById('error').textContent = error.detail || 'Registration error';
+                        }
+                    } else {
+                        document.getElementById('error').textContent = error.detail || 'Registration error';
+                    }
                 }
             } catch {
                 document.getElementById('error').style.display = 'block';
