@@ -44,7 +44,7 @@ class UserCreateSchema(BaseUserOperationSchema):
 
 
 class UserLoginSchema(BaseUserOperationSchema):
-    password: str = Field(...)
+    password: str
 
 
 class UserCreateDatabaseSchema(BaseModel):
