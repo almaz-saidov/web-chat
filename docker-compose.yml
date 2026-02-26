@@ -29,6 +29,7 @@ services:
     env_file:
       - ./src/core/envs/.env
     environment:
+      HOST: 0.0.0.0
       DB_HOST: postgres
       PRIVATE_KEY_PATH: /usr/web-chat/src/core/certs/jwt-private.pem
       PUBLIC_KEY_PATH: /usr/web-chat/src/core/certs/jwt-public.pem
