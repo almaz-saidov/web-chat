@@ -1,7 +1,6 @@
 FROM python:3.12-alpine
 
-RUN apk add --no-cache postgresql-dev && \
-    pip install --no-cache-dir --upgrade pip && \
+RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir poetry==1.8.2
 
 WORKDIR /usr/web-chat/src
