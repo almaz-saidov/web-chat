@@ -59,5 +59,5 @@ docker compose --env-file ./src/core/envs/.env up --build -d
 
 # Остановить проект
 ```
-docker compose --env-file ./src/core/envs/.env down -v
+docker compose --env-file ./src/core/envs/.env down
 ```
