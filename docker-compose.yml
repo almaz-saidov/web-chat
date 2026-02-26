@@ -35,7 +35,6 @@ services:
       - "${PORT}:8000"
     volumes:
       - ./src/core/certs:/usr/web-chat/src/core/certs
-      - ./src:/usr/web-chat/src
 
 volumes:
   postgres_data:
