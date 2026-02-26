@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: web_chat_postgres
+    env_file:
+      - ./src/core/envs/.env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: ./src
+    container_name: web_chat
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./src/core/envs/.env
+    environment:
+      PRIVATE_KEY_PATH: /usr/web-chat/src/core/certs/jwt-private.pem
+      PUBLIC_KEY_PATH: /usr/web-chat/src/core/certs/jwt-public.pem
+    ports:
+      - "${PORT}:8000"
+    volumes:
+      - ./src/core/certs:/usr/web-chat/src/core/certs
+      - ./src:/usr/web-chat/src
+
+volumes:
+  postgres_data:
