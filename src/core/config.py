@@ -9,14 +9,14 @@ ENV_PATH = os.path.join(BASE_DIR, "core", "envs", ".env")
 
 
 class Settings(BaseSettings):
-    HOST: str
-    PORT: int
+    HOST: str = "localhost"
+    PORT: int = 8000
 
-    DB_HOST: str
-    DB_PORT: int
-    DB_USER: str
-    DB_PASS: str
-    DB_NAME: str
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
+    DB_USER: str = "db_user"
+    DB_PASS: str = "db_pass"
+    DB_NAME: str = "db_name"
 
     PRIVATE_KEY_PATH: Path = Path(os.path.join(BASE_DIR, "core", "certs", "jwt-private.pem"))
     PUBLIC_KEY_PATH: Path = Path(os.path.join(BASE_DIR, "core", "certs", "jwt-public.pem"))
