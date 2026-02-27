@@ -73,6 +73,8 @@
             padding: 20px;
             overflow-y: auto;
             background: #f8fafc;
+            display: flex;
+            flex-direction: column;
         }
 
         .message {
@@ -82,6 +84,30 @@
             border-radius: 10px;
             border-left: 4px solid #667eea;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            width: 100%;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .message-author {
+            font-weight: 600;
+            color: #764ba2;
+        }
+
+        .message-time {
+            color: #94a3b8;
+        }
+
+        .message-content {
+            font-size: 15px;
+            color: #1e293b;
+            word-wrap: break-word;
         }
 
         .input-container {
@@ -128,6 +154,18 @@
             transform: translateY(0);
         }
 
+        #sendBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            color: #64748b;
+            padding: 20px;
+        }
+
         .messages-container::-webkit-scrollbar {
             width: 6px;
         }
@@ -154,7 +192,7 @@
         </div>
 
         <div class="messages-container" id="messagesContainer">
-            <!-- Messages will appear here -->
+            <div class="loading" id="loadingMessages">Loading messages...</div>
         </div>
 
         <div class="input-container">
@@ -164,13 +202,214 @@
                     id="messageInput"
                     placeholder="Type a message..."
                     autocomplete="off"
+                    disabled
                 >
-                <button id="sendBtn" onclick="sendMessage()">Send</button>
+                <button id="sendBtn" onclick="sendMessage()" disabled>Send</button>
             </div>
         </div>
     </div>
 
     <script>
+        let token = localStorage.getItem('access_token');
+
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        let ws = null;
+        let isConnected = false;
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('ru-RU', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function addMessage(messageData) {
+            const messagesContainer = document.getElementById('messagesContainer');
+
+            const loadingEl = document.getElementById('loadingMessages');
+            if (loadingEl) {
+                loadingEl.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+
+            const header = document.createElement('div');
+            header.className = 'message-header';
+
+            const author = document.createElement('span');
+            author.className = 'message-author';
+            author.textContent = messageData.username || 'Unknown';
+
+            const time = document.createElement('span');
+            time.className = 'message-time';
+            time.textContent = formatTime(messageData.created_at);
+
+            header.appendChild(author);
+            header.appendChild(time);
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.textContent = messageData.content;
+
+            messageDiv.appendChild(header);
+            messageDiv.appendChild(content);
+
+            messagesContainer.appendChild(messageDiv);
+
+            const shouldScroll = messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight < 100;
+            if (shouldScroll) {
+                scrollToBottom();
+            }
+        }
+        async function loadMessageHistory() {
+            try {
+                const response = await fetch('/api/message/all', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load messages');
+                }
+
+                const messages = await response.json();
+
+                const messagesContainer = document.getElementById('messagesContainer');
+                messagesContainer.innerHTML = '';
+
+                if (messages.length === 0) {
+                    messagesContainer.innerHTML = '<div class="loading">No messages yet. Start the conversation!</div>';
+                } else {
+                    messages.forEach(message => addMessage(message));
+
+                    scrollToBottom();
+                }
+
+                return messages;
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                const messagesContainer = document.getElementById('messagesContainer');
+                messagesContainer.innerHTML = '<div class="loading">Failed to load messages. Please refresh the page.</div>';
+
+                if (error.message === 'Failed to load messages') {
+                    logout();
+                }
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            const sendBtn = document.getElementById('sendBtn');
+
+            if (!message) return;
+
+            try {
+                sendBtn.disabled = true;
+                input.disabled = true;
+
+                const response = await fetch('/api/message/create', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: message
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to send message');
+                }
+
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(message);
+                }
+
+                input.value = '';
+
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Failed to send message. Please try again.');
+            } finally {
+                sendBtn.disabled = false;
+                input.disabled = false;
+                input.focus();
+            }
+        }
+
+        function scrollToBottom() {
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function initWebSocket() {
+            ws = new WebSocket(`ws://${window.location.host}/api/ws?token=${token}`);
+
+            ws.onopen = function() {
+                console.log('WebSocket connected');
+                isConnected = true;
+
+                document.getElementById('messageInput').disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+                document.getElementById('messageInput').focus();
+            };
+
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                isConnected = false;
+            };
+
+            ws.onclose = function() {
+                console.log('WebSocket disconnected');
+                isConnected = false;
+
+                document.getElementById('messageInput').disabled = true;
+                document.getElementById('sendBtn').disabled = true;
+
+                setTimeout(() => {
+                    if (!isConnected && token) {
+                        initWebSocket();
+                    }
+                }, 3000);
+            };
+
+            ws.onmessage = function(event) {
+                try {
+                    const messageText = event.data;
+
+                    const colonIndex = messageText.indexOf(': ');
+                    if (colonIndex > 0) {
+                        const username = messageText.substring(0, colonIndex);
+                        const content = messageText.substring(colonIndex + 2);
+
+                        addMessage({
+                            username: username,
+                            content: content,
+                            created_at: new Date().toISOString()
+                        });
+                    } else {
+                        addMessage({
+                            username: 'System',
+                            content: messageText,
+                            created_at: new Date().toISOString()
+                        });
+                    }
+                } catch (e) {
+                    console.error('Error parsing WebSocket message:', e);
+                }
+            };
+        }
+
         async function logout() {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.close();
@@ -182,6 +421,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 credentials: 'same-origin'
             });
@@ -189,56 +429,19 @@
             window.location.href = 'login.html';
         }
 
-        let token = localStorage.getItem('access_token');
-        if (!token) {
-            window.location.href = 'login.html';
-        }
-
-        const ws = new WebSocket(`ws://${window.location.host}/api/ws?token=${token}`);
-
-        ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
-            logout();
-        };
-
-        ws.onmessage = (event) => {
-            addMessage(event.data);
-        };
-
-        function addMessage(text) {
-            const messagesContainer = document.getElementById('messagesContainer');
-
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message';
-            messageDiv.textContent = text;
-
-            messagesContainer.appendChild(messageDiv);
-            scrollToBottom();
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const message = input.value.trim();
-
-            if (message && ws.readyState === WebSocket.OPEN) {
-                ws.send(message);
-                input.value = '';
-                input.focus();
-            }
-        }
-
         document.getElementById('messageInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !this.disabled) {
                 sendMessage();
             }
         });
 
-        function scrollToBottom() {
-            const messagesContainer = document.getElementById('messagesContainer');
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        async function init() {
+            await loadMessageHistory();
+
+            initWebSocket();
         }
 
-        document.getElementById('messageInput').focus();
+        init();
     </script>
 </body>
 </html>
