@@ -17,12 +17,9 @@ class WebSocketService:
 
     async def _connect(self, websocket: WebSocket, username: str) -> None:
         await manager.connect(websocket=websocket, username=username)
-        await manager.broadcast(message=f"{username} joined the chat.")
 
     async def _disconnect(self, websocket: WebSocket) -> None:
-        disconnected_user = manager.disconnect(websocket=websocket)
-        if disconnected_user:
-            await manager.broadcast(message=f"{disconnected_user} left the chat.")
+        manager.disconnect(websocket=websocket)
 
 
 def get_websocket_service() -> WebSocketService:
