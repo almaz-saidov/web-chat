@@ -8,10 +8,6 @@ WORKDIR /usr/web-chat/src
 COPY pyproject.toml poetry.lock ./
 
 RUN poetry config virtualenvs.create false && \
-    poetry install --no-interaction --no-ansi --no-root
+    poetry install --no-interaction --no-ansi --no-cache
 
 COPY . .
-
-RUN chmod +x entrypoint.sh
-
-ENTRYPOINT ["/usr/web-chat/src/entrypoint.sh"]
