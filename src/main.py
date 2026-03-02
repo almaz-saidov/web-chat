@@ -12,4 +12,4 @@ app.include_router(api_router)
 setup_static_files(app)
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host=settings.HOST, port=settings.PORT)
+    uvicorn.run("main:app", host=settings.SERVER_HOST, port=settings.SERVER_PORT)
