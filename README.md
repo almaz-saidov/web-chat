@@ -7,22 +7,22 @@
 
 ```
 # Сервер
-HOST="0.0.0.0"
-PORT=8000
+HOST=
+PORT=
 
 # База данных
-DB_HOST="postgres"
-DB_PORT=5432
-DB_USER="postgres"
-DB_PASS="postgres"
-DB_NAME="web_chat_db"
+DB_HOST=
+DB_PORT=
+DB_USER=
+DB_PASS=
+DB_NAME=
 
 # JWT токены
-PRIVATE_KEY_PATH="core/certs/jwt-private.pem"
-PUBLIC_KEY_PATH="core/certs/jwt-public.pem"
-ALGORITHM="RS256"
-ACCESS_TOKEN_EXPIRE_MINUTES=15
-REFRESH_TOKEN_EXPIRE_DAYS=30
+PRIVATE_KEY_PATH=
+PUBLIC_KEY_PATH=
+ALGORITHM=
+ACCESS_TOKEN_EXPIRE_MINUTES=
+REFRESH_TOKEN_EXPIRE_DAYS=
 ```
 
 ## Генерация RSA ключей для JWT
