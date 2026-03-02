@@ -28,7 +28,6 @@ services:
     container_name: web-chat-db
     restart: always
     command: -p ${POSTGRES_PORT}
-    env_file: ./src/core/envs/.env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
