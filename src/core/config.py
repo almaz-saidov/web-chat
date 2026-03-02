@@ -9,7 +9,7 @@ ENV_PATH = os.path.join(BASE_DIR, "core", "envs", ".env")
 
 
 class Settings(BaseSettings):
-    SERVER_HOST: str = "localhost"
+    SERVER_HOST: str = "0.0.0.0"
     SERVER_PORT: int = 8000
 
     POSTGRES_HOST: str = "web-chat-db"
