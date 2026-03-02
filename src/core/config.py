@@ -9,8 +9,8 @@ ENV_PATH = os.path.join(BASE_DIR, "core", "envs", ".env")
 
 
 class Settings(BaseSettings):
-    HOST: str = "localhost"
-    PORT: int = 8000
+    SERVER_HOST: str = "localhost"
+    SERVER_PORT: int = 8000
 
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
