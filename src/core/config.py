@@ -9,14 +9,14 @@ ENV_PATH = os.path.join(BASE_DIR, "core", "envs", ".env")
 
 
 class Settings(BaseSettings):
-    HOST: str
-    PORT: int
+    SERVER_HOST: str = "0.0.0.0"
+    SERVER_PORT: int = 8000
 
-    DB_HOST: str
-    DB_PORT: int
-    DB_USER: str
-    DB_PASS: str
-    DB_NAME: str
+    POSTGRES_HOST: str = "web-chat-db"
+    POSTGRES_PORT: int = 5432
+    POSTGRES_USER: str = "db_user"
+    POSTGRES_PASSWORD: str = "db_pass"
+    POSTGRES_DB: str = "db_name"
 
     PRIVATE_KEY_PATH: Path = Path(os.path.join(BASE_DIR, "core", "certs", "jwt-private.pem"))
     PUBLIC_KEY_PATH: Path = Path(os.path.join(BASE_DIR, "core", "certs", "jwt-public.pem"))
@@ -26,7 +26,7 @@ class Settings(BaseSettings):
 
     @property
     def DB_URL(self) -> str:
-        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     model_config = SettingsConfigDict(
         env_file=ENV_PATH,
