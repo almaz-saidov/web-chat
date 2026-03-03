@@ -11,7 +11,6 @@ class ConnectionManager:
 
     def disconnect(self, websocket: WebSocket) -> None:
         if websocket in self.active_connections:
-            self.active_connections[websocket]
             del self.active_connections[websocket]
 
     async def broadcast(self, message: str) -> None:
