@@ -12,7 +12,7 @@ services:
     networks:
       - web-chat-network
     ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
+      - ${SERVER_PORT}:${SERVER_PORT}
     volumes:
       - ./src/core/certs:/usr/web-chat/src/core/certs
     depends_on:
@@ -37,7 +37,7 @@ services:
     expose:
       - ${POSTGRES_PORT}
     ports:
-      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
     volumes:
       - web-chat-db-data:/var/lib/postgresql/data
     healthcheck:
