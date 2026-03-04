@@ -266,9 +266,10 @@
                 scrollToBottom();
             }
         }
+
         async function loadMessageHistory() {
             try {
-                const response = await fetch('/api/message/all', {
+                let response = await fetch('/api/message/all', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -276,8 +277,21 @@
                     }
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to load messages');
+                if (response.status === 401) {
+                    const error = await response.json();
+
+                    if (error.detail === 'Invalid token') {
+                        await logout();
+                    } else if (error.detail === 'Access token expired') {
+                        await refresh();
+                        response = await fetch('/api/message/all', {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                    }
                 }
 
                 const messages = await response.json();
@@ -285,13 +299,9 @@
                 const messagesContainer = document.getElementById('messagesContainer');
                 messagesContainer.innerHTML = '';
 
-                if (messages.length === 0) {
-                    messagesContainer.innerHTML = '<div class="loading">No messages yet. Start the conversation!</div>';
-                } else {
-                    messages.forEach(message => addMessage(message));
+                messages.forEach(message => addMessage(message));
 
-                    scrollToBottom();
-                }
+                scrollToBottom();
 
                 return messages;
             } catch (error) {
@@ -300,7 +310,7 @@
                 messagesContainer.innerHTML = '<div class="loading">Failed to load messages. Please refresh the page.</div>';
 
                 if (error.message === 'Failed to load messages') {
-                    logout();
+                    await logout();
                 }
             }
         }
@@ -316,7 +326,7 @@
                 sendBtn.disabled = true;
                 input.disabled = true;
 
-                const response = await fetch('/api/message/create', {
+                let response = await fetch('/api/message/create', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -327,8 +337,24 @@
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to send message');
+                if (response.status === 401) {
+                    const error = await response.json();
+
+                    if (error.detail === 'Invalid token') {
+                        await logout();
+                    } else if (error.detail === 'Access token expired') {
+                        await refresh();
+                        response = await fetch('/api/message/create', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                content: message
+                            })
+                        });
+                    }
                 }
 
                 if (ws && ws.readyState === WebSocket.OPEN) {
@@ -353,10 +379,10 @@
         }
 
         function initWebSocket() {
+            token = localStorage.getItem('access_token');
             ws = new WebSocket(`ws://${window.location.host}/api/ws?token=${token}`);
 
             ws.onopen = function() {
-                console.log('WebSocket connected');
                 isConnected = true;
 
                 document.getElementById('messageInput').disabled = false;
@@ -364,13 +390,12 @@
                 document.getElementById('messageInput').focus();
             };
 
-            ws.onerror = function(error) {
-                console.error('WebSocket error:', error);
+            ws.onerror = async function() {
+                await refresh();
                 isConnected = false;
             };
 
             ws.onclose = function() {
-                console.log('WebSocket disconnected');
                 isConnected = false;
 
                 document.getElementById('messageInput').disabled = true;
@@ -408,6 +433,25 @@
                     console.error('Error parsing WebSocket message:', e);
                 }
             };
+        }
+
+        async function refresh() {
+            localStorage.removeItem('access_token');
+
+            const response = await fetch('/api/auth/refresh', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+
+            if (response.status === 401) {
+                await logout();
+            }
+
+            const data = await response.json();
+            localStorage.setItem('access_token', data.access_token);
+            localStorage.setItem('token_type', data.token_type);
+            initWebSocket();
+            await loadMessageHistory();
         }
 
         async function logout() {
