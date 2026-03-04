@@ -128,11 +128,9 @@
                 if (response.ok) {
                     const data = await response.json();
 
-                    // Save token and token type
                     localStorage.setItem('access_token', data.access_token);
                     localStorage.setItem('token_type', data.token_type);
 
-                    // Redirect to chat
                     window.location.href = '/chat.html';
                 } else {
                     const error = await response.json();
@@ -145,7 +143,6 @@
             }
         };
 
-        // Autofocus on username field
         document.getElementById('username').focus();
     </script>
 </body>
