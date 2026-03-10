@@ -3,9 +3,12 @@
 
 ## Конфигурация проекта
 
-Для работы проекта необходимо создать файл **.env** в директории **src/core/envs** со следующими переменными окружения:
+Для работы проекта необходимо создать файл **.env.${ENVIRONMENT}** в директории **src/core/envs** со следующими переменными окружения:
 
 ```
+# Окружение
+ENVIRONMENT=
+
 # Сервер
 SERVER_HOST=
 SERVER_PORT=
@@ -27,7 +30,7 @@ REFRESH_TOKEN_EXPIRE_DAYS=
 
 ## Генерация RSA ключей для JWT
 
-Для работы аутентификации необходимо создать пару RSA ключей по указанным в .env путям:
+Для работы аутентификации необходимо создать пару RSA ключей по указанным в **.env.${ENVIRONMENT}** путям:
 
 ```
 # Генерация приватного ключа
@@ -48,16 +51,16 @@ src/
 │       ├── jwt-private.pem
 │       └── jwt-public.pem
 │   └── envs/
-│       └── .env
+│       └── .env.${ENVIRONMENT}
 ├── ... (остальные файлы проекта)
 ```
 
 # Запустить проект
 ```
-docker compose --env-file ./src/core/envs/.env up --build -d
+docker compose --env-file ./src/core/envs/.env.${ENVIRONMENT} up --build -d
 ```
 
 # Остановить проект
 ```
-docker compose --env-file ./src/core/envs/.env down
+docker compose --env-file ./src/core/envs/.env.${ENVIRONMENT} down
 ```
