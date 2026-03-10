@@ -1,5 +1,7 @@
 __pycache__
-.env
+.env.dev
+.env.local
+.env.prod
 .idea
 jwt-private.pem
 jwt-public.pem

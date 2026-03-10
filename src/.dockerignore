@@ -3,7 +3,7 @@ __pycache__
 *.pyo
 *.pyd
 .Python
-.env
+core/envs/.env.dev
 .git
 .gitignore
 .idea
