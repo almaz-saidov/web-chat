@@ -3,7 +3,9 @@ __pycache__
 *.pyo
 *.pyd
 .Python
-.env
+core/envs/.env.dev
+core/envs/.env.local
+core/envs/.env.prod
 .git
 .gitignore
 .idea
