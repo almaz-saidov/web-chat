@@ -4,6 +4,8 @@ __pycache__
 *.pyd
 .Python
 core/envs/.env.dev
+core/envs/.env.local
+core/envs/.env.prod
 .git
 .gitignore
 .idea
