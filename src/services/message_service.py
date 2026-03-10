@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.repositories.message_repository import MessageRepository
 from database.session import get_session
-from schemas.message import MessageCreateDatabaseSchema, MessageCreateSchema, MessageSchema
+from schemas.message import MessageCreateSchema, MessageSchema
 from schemas.user import UserSchema
 from services.db_service import DatabaseService
 
@@ -13,12 +13,7 @@ class MessageService(DatabaseService[MessageRepository]):
         return await self._repository.get_all()
 
     async def create(self, message_create_data: MessageCreateSchema, user: UserSchema) -> MessageSchema:
-        return await self._repository.create(
-            message_create_data=MessageCreateDatabaseSchema(
-                user_id=user.id,
-                content=message_create_data.content,
-            ),
-        )
+        return await self._repository.create(message_create_data=message_create_data, user=user)
 
     def _create_repository(self) -> MessageRepository:
         return MessageRepository(session=self._session)
