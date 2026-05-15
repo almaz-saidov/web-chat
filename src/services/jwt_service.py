@@ -7,30 +7,21 @@ from schemas.jwt import JWTPayloadSchema
 
 
 class JWTService:
-    def encode_jwt(
-        self,
-        payload: JWTPayloadSchema,
-        private_key: str = settings.PRIVATE_KEY_PATH.read_text(),
-        algorithm: str = settings.ALGORITHM,
-        expire_minutes: int = settings.ACCESS_TOKEN_EXPIRE_MINUTES,
-    ) -> str:
+    def encode_jwt(self, payload: JWTPayloadSchema) -> str:
         to_encode = payload.model_copy()
 
-        expire = datetime.now(timezone.utc) + timedelta(minutes=expire_minutes)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         to_encode.exp = int(expire.timestamp())
 
-        return jwt.encode(payload=to_encode.model_dump(), key=private_key, algorithm=algorithm)
+        return jwt.encode(
+            payload=to_encode.model_dump(), key=settings.PRIVATE_KEY_PATH.read_text(), algorithm=settings.ALGORITHM
+        )
 
-    def decode_jwt(
-        self,
-        token: str,
-        public_key: str = settings.PUBLIC_KEY_PATH.read_text(),
-        algorithm: str = settings.ALGORITHM,
-    ) -> JWTPayloadSchema:
+    def decode_jwt(self, token: str) -> JWTPayloadSchema:
         decoded_jwt = jwt.decode(
             jwt=token,
-            key=public_key,
-            algorithms=[algorithm],
+            key=settings.PUBLIC_KEY_PATH.read_text(),
+            algorithms=[settings.ALGORITHM],
             verify_exp=True,
             require=["exp"],
         )
