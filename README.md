@@ -3,24 +3,21 @@
 
 ## Конфигурация проекта
 
-Для работы проекта необходимо создать файл **.env.${ENVIRONMENT}** в директории **src/core/envs** со следующими переменными окружения:
+Для работы проекта необходимо создать файл **.env** в директории **src/core/envs** со следующими переменными окружения:
 
 ```
-# Окружение
-ENVIRONMENT=
-
-# Сервер
+# === СЕТЕВЫЕ ПАРАМЕТРЫ СЕРВЕРА ПРИЛОЖЕНИЯ ===
 SERVER_HOST=
 SERVER_PORT=
 
-# База данных
+# === ПАРАМЕТРЫ ПОДКЛЮЧЕНИЯ К ХРАНИЛИЩУ ДАННЫХ ===
 POSTGRES_HOST=
 POSTGRES_PORT=
 POSTGRES_USER=
 POSTGRES_PASSWORD=
 POSTGRES_DB=
 
-# JWT токены
+# === КОНФИГУРАЦИЯ КРИПТОГРАФИЧЕСКОЙ СИСТЕМЫ JWT ===
 PRIVATE_KEY_PATH=
 PUBLIC_KEY_PATH=
 ALGORITHM=
@@ -30,7 +27,7 @@ REFRESH_TOKEN_EXPIRE_DAYS=
 
 ## Генерация RSA ключей для JWT
 
-Для работы аутентификации необходимо создать пару RSA ключей по указанным в **.env.${ENVIRONMENT}** путям:
+Для работы аутентификации необходимо создать пару RSA ключей по указанным в **.env** путям:
 
 ```
 # Генерация приватного ключа
@@ -51,16 +48,16 @@ src/
 │       ├── jwt-private.pem
 │       └── jwt-public.pem
 │   └── envs/
-│       └── .env.${ENVIRONMENT}
+│       └── .env
 ├── ... (остальные файлы проекта)
 ```
 
 # Запустить проект
 ```
-docker compose --env-file ./src/core/envs/.env.${ENVIRONMENT} up --build -d
+docker compose --env-file ./src/core/envs/.env up --build -d
 ```
 
 # Остановить проект
 ```
-docker compose --env-file ./src/core/envs/.env.${ENVIRONMENT} down
+docker compose --env-file ./src/core/envs/.env down
 ```
