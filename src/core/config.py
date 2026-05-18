@@ -5,7 +5,7 @@ from typing import Final
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-ENV_PATH = os.path.join(BASE_DIR, "core", "envs", ".env.dev")
+ENV_PATH = os.path.join(BASE_DIR, "core", "envs", ".env")
 
 
 class Settings(BaseSettings):
