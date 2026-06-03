@@ -1,6 +1,8 @@
 __pycache__
+.python-version
 .env
 .idea
+.vscode
 .venv
 jwt-private.pem
 jwt-public.pem
