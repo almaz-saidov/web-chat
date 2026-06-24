@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from typing import Final
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,6 +24,18 @@ class Settings(BaseSettings):
     ALGORITHM: str = "RS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+
+    SIGNATURE_SAMPLE_COUNT: int = Field(default=5, gt=0)
+    SIGNATURE_MIN_POINT_COUNT: int = Field(default=5, gt=0)
+    SIGNATURE_NORMALIZED_POINT_COUNT: int = Field(default=1024, gt=1)
+    SIGNATURE_MATCH_THRESHOLD: float = Field(default=0.85, ge=0, le=1)
+    SIGNATURE_COORDINATE_WEIGHT: float = Field(default=1.0, ge=0)
+    SIGNATURE_PRESSURE_WEIGHT: float = Field(default=0.35, ge=0)
+    SIGNATURE_TILT_WEIGHT: float = Field(default=0.35, ge=0)
+    SIGNATURE_TIME_WEIGHT: float = Field(default=0.15, ge=0)
+    SIGNATURE_DURATION_WEIGHT: float = Field(default=0.4, ge=0)
+    SIGNATURE_BREAK_COUNT_WEIGHT: float = Field(default=0.3, ge=0)
+    SIGNATURE_MAX_DURATION_PENALTY_RATIO: float = Field(default=2.0, ge=0)
 
     @property
     def DB_URL(self) -> str:
