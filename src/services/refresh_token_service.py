@@ -1,11 +1,9 @@
 import uuid
 
 from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions import InvalidRefreshTokenFormatHTTPException, InvalidTokenHTTPException
 from database.repositories.refresh_token_repository import RefreshTokenRepository
-from database.session import get_session
 from schemas.refresh_token import RefreshTokenCreateSchema, RefreshTokenSchema
 from services.db_service import DatabaseService
 
@@ -36,9 +34,8 @@ class RefreshTokenService(DatabaseService[RefreshTokenRepository]):
         if await self._repository.get_by_user_id(user_id=refresh_token_create_data.user_id):
             await self._repository.force_delete_by_user_id(user_id=refresh_token_create_data.user_id)
 
-    def _create_repository(self) -> RefreshTokenRepository:
-        return RefreshTokenRepository(session=self._session)
 
-
-def get_refresh_token_service(session: AsyncSession = Depends(get_session)) -> RefreshTokenService:
-    return RefreshTokenService(session=session)
+def get_refresh_token_service(
+    repository: RefreshTokenRepository = Depends(),
+) -> RefreshTokenService:
+    return RefreshTokenService(repository=repository)

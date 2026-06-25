@@ -3,11 +3,11 @@ import uuid
 from sqlalchemy import insert, select
 
 from database.models import User
-from database.repositories.base_repository import BaseRepository
+from database.repositories.base_repository import BaseDatabaseRepository
 from schemas.user import UserCreateDatabaseSchema, UserSchema
 
 
-class UserRepository(BaseRepository):
+class UserRepository(BaseDatabaseRepository):
     async def create(self, user_create_data: UserCreateDatabaseSchema) -> UserSchema:
         query = insert(User).values(**user_create_data.model_dump()).returning(User)
 
