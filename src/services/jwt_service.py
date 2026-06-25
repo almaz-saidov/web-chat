@@ -22,8 +22,10 @@ class JWTService:
             jwt=token,
             key=settings.PUBLIC_KEY_PATH.read_text(),
             algorithms=[settings.ALGORITHM],
-            verify_exp=True,
-            require=["exp"],
+            options={
+                "verify_exp": True,
+                "require": ["exp"],
+            },
         )
 
         return JWTPayloadSchema(**decoded_jwt)
