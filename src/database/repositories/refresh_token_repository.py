@@ -3,11 +3,11 @@ import uuid
 from sqlalchemy import delete, insert, select
 
 from database.models import RefreshToken
-from database.repositories.base_repository import BaseRepository
+from database.repositories.base_repository import BaseDatabaseRepository
 from schemas.refresh_token import RefreshTokenCreateSchema, RefreshTokenSchema
 
 
-class RefreshTokenRepository(BaseRepository):
+class RefreshTokenRepository(BaseDatabaseRepository):
     async def create(self, refresh_token_create_data: RefreshTokenCreateSchema) -> RefreshTokenSchema:
         query = insert(RefreshToken).values(**refresh_token_create_data.model_dump()).returning(RefreshToken)
 
