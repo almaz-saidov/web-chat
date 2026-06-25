@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     SIGNATURE_BREAK_COUNT_WEIGHT: float = Field(default=0.3, ge=0)
     SIGNATURE_MAX_DURATION_PENALTY_RATIO: float = Field(default=2.0, ge=0)
 
+    TEST_DB_URL: str | None = None
+
     @property
     def DB_URL(self) -> str:
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"

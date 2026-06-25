@@ -29,6 +29,11 @@ line-length = 120
 [tool.ruff.lint]
 extend-select = ["I"]
 
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["."]
+testpaths = ["tests"]
+
 [tool.mypy]
 allow_redefinition = "False"
 check_untyped_defs = "True"
@@ -54,3 +59,11 @@ exclude = ["migrations"]
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.1.1,<10.0.0)",
+    "pytest-asyncio (>=1.4.0,<2.0.0)",
+    "httpx (>=0.28.1,<0.29.0)",
+    "testcontainers[postgres] (>=4.14.2,<5.0.0)"
+]
