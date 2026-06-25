@@ -1,4 +1,55 @@
-document.getElementById('registerForm').onsubmit = async function(e) {
+const signatureSamples = [];
+const registerButton = document.querySelector('#registerForm button[type="submit"]');
+const saveSignatureSampleButton = document.getElementById('saveSignatureSample');
+const signatureProgress = document.getElementById('signatureProgress');
+
+const signaturePad = createSignaturePad({
+    canvasId: 'signatureCanvas',
+    clearButtonId: 'clearSignature',
+    errorElementId: 'error',
+    onChange: updateSignatureState
+});
+
+function showError(message) {
+    document.getElementById('success').style.display = 'none';
+    document.getElementById('error').style.display = 'block';
+    document.getElementById('error').textContent = message;
+}
+
+function showSuccess(message) {
+    document.getElementById('error').style.display = 'none';
+    document.getElementById('success').style.display = 'block';
+    document.getElementById('success').textContent = message;
+}
+
+function getErrorMessage(error, fallbackMessage) {
+    if (Array.isArray(error.detail) && error.detail.length > 0) {
+        return error.detail[0].msg.replace(/^Value error,\s*/, '');
+    }
+
+    return error.detail || fallbackMessage;
+}
+
+function updateSignatureState() {
+    signatureProgress.textContent = `Signature samples: ${signatureSamples.length}/5`;
+    saveSignatureSampleButton.disabled = signatureSamples.length >= 5 || signaturePad.getPointCount() < 5;
+    registerButton.disabled = signatureSamples.length !== 5;
+}
+
+saveSignatureSampleButton.addEventListener('click', function() {
+    const signatureSample = signaturePad.getSample();
+    if (!signatureSample) {
+        showError('Signature sample is incomplete');
+        return;
+    }
+
+    signatureSamples.push(signatureSample);
+    signaturePad.clear();
+    showSuccess(`Signature sample ${signatureSamples.length}/5 saved`);
+    updateSignatureState();
+});
+
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
     const username = document.getElementById('username').value;
@@ -6,8 +57,12 @@ document.getElementById('registerForm').onsubmit = async function(e) {
     const password_confirmation = document.getElementById('confirmPassword').value;
 
     if (password !== password_confirmation) {
-        document.getElementById('error').style.display = 'block';
-        document.getElementById('error').textContent = 'Passwords do not match';
+        showError('Passwords do not match');
+        return;
+    }
+
+    if (signatureSamples.length !== 5) {
+        showError('Five signature samples are required');
         return;
     }
 
@@ -18,36 +73,24 @@ document.getElementById('registerForm').onsubmit = async function(e) {
             body: JSON.stringify({
                 username,
                 password,
-                password_confirmation
+                password_confirmation,
+                signature_samples: signatureSamples
             })
         });
 
         if (response.ok) {
-            document.getElementById('error').style.display = 'none';
-            document.getElementById('success').style.display = 'block';
-            document.getElementById('success').textContent = 'Registration successful!';
+            showSuccess('Registration successful!');
 
             setTimeout(() => {
                 window.location.href = '/login.html';
             }, 1500);
         } else {
             const error = await response.json();
-            document.getElementById('error').style.display = 'block';
-
-            if (response.status === 422 && error.detail) {
-                const validationError = error.detail.find(err => err.loc.includes('username'));
-                if (validationError) {
-                    const errorMessage = validationError.msg.replace(/^Value error,\s*/, '');
-                    document.getElementById('error').textContent = errorMessage;
-                } else {
-                    document.getElementById('error').textContent = error.detail || 'Registration error';
-                }
-            } else {
-                document.getElementById('error').textContent = error.detail || 'Registration error';
-            }
+            showError(getErrorMessage(error, 'Registration error'));
         }
     } catch {
-        document.getElementById('error').style.display = 'block';
-        document.getElementById('error').textContent = 'Connection error';
+        showError('Connection error');
     }
-};
+});
+
+updateSignatureState();

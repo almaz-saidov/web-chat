@@ -10,6 +10,7 @@ from core.exceptions import (
     AccessTokenExpiredHTTPException,
     InvalidTokenHTTPException,
     RefreshTokenExpiredHTTPException,
+    SignatureVerificationFailedHTTPException,
     TokenIsInvalidOrExpiredWebSocketException,
     UserAlreadyExistsHTTPException,
     WrongRefreshTokenHTTPException,
@@ -22,6 +23,7 @@ from schemas.user import UserCreateDatabaseSchema, UserCreateSchema, UserLoginSc
 from services.cookies_service import CookiesService, get_cookies_service
 from services.jwt_service import JWTService, get_jwt_service
 from services.refresh_token_service import RefreshTokenService, get_refresh_token_service
+from services.signature_service import SignatureService, get_signature_service
 from services.user_service import UserService, get_user_service
 
 
@@ -32,11 +34,13 @@ class AuthService:
         user_service: UserService,
         refresh_token_service: RefreshTokenService,
         cookies_service: CookiesService,
+        signature_service: SignatureService,
     ) -> None:
         self.__jwt_service = jwt_service
         self.__user_service = user_service
         self.__refresh_token_service = refresh_token_service
         self.__cookies_service = cookies_service
+        self.__signature_service = signature_service
 
     async def register_user(self, user_create_data: UserCreateSchema) -> UserResponseSchema:
         user = await self.__user_service.get_by_username(username=user_create_data.username)
@@ -49,12 +53,25 @@ class AuthService:
                 password_hash=self._hash_password(user_create_data.password),
             ),
         )
+
+        await self.__signature_service.create_template(
+            user_id=user.id,
+            signature_samples=user_create_data.signature_samples,
+        )
+
         return UserResponseSchema(**user.model_dump())
 
     async def authenticate_user(self, login_data: UserLoginSchema, response: Response) -> AccessTokenSchema:
         user = await self.__user_service.get_by_username(username=login_data.username)
         if not user or not self._verify_password(password=login_data.password, hashed_password=user.password_hash):
             raise WrongUsernameOrPasswordHTTPException()
+
+        signature_verified = await self.__signature_service.verify_signature(
+            user_id=user.id,
+            signature_sample=login_data.signature_sample,
+        )
+        if not signature_verified:
+            raise SignatureVerificationFailedHTTPException()
 
         access_token = await self._create_tokens(user=user, response=response)
 
@@ -152,10 +169,12 @@ def get_auth_service(
     user_service: UserService = Depends(get_user_service),
     refresh_token_service: RefreshTokenService = Depends(get_refresh_token_service),
     cookies_service: CookiesService = Depends(get_cookies_service),
+    signature_service: SignatureService = Depends(get_signature_service),
 ) -> AuthService:
     return AuthService(
         jwt_service=jwt_service,
         user_service=user_service,
         refresh_token_service=refresh_token_service,
         cookies_service=cookies_service,
+        signature_service=signature_service,
     )

@@ -4,6 +4,9 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from core.config import settings
+from schemas.signature import SignatureSampleSchema
+
 
 class BaseUserSchema(BaseModel):
     id: uuid.UUID
@@ -35,6 +38,11 @@ class BaseUserOperationSchema(BaseModel):
 class UserCreateSchema(BaseUserOperationSchema):
     password: str = Field(..., min_length=6)
     password_confirmation: str = Field(..., min_length=6)
+    signature_samples: list[SignatureSampleSchema] = Field(
+        ...,
+        min_length=settings.SIGNATURE_SAMPLE_COUNT,
+        max_length=settings.SIGNATURE_SAMPLE_COUNT,
+    )
 
     @model_validator(mode="after")
     def validate_passwords_match(self):
@@ -45,6 +53,7 @@ class UserCreateSchema(BaseUserOperationSchema):
 
 class UserLoginSchema(BaseUserOperationSchema):
     password: str
+    signature_sample: SignatureSampleSchema
 
 
 class UserCreateDatabaseSchema(BaseModel):

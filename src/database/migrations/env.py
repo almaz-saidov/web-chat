@@ -8,7 +8,7 @@ from sqlalchemy import engine_from_config, pool
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from core.config import settings
-from database.models import Base, Message, RefreshToken, User  # noqa
+from database.models import Base, Message, RefreshToken, SignatureTemplate, User  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
