@@ -44,7 +44,6 @@ Unit-тесты проверяют отдельную логику без API и
 
 Писать unit-тесты для:
 
-- Pydantic-валидации, если есть нетривиальные правила;
 - `JWTService`;
 - `RefreshTokenService.validate_refresh_token_str`;
 - чистых функций и методов без I/O;
