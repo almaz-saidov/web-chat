@@ -13,12 +13,12 @@ def get_engine(url: str | URL) -> AsyncEngine:
     return create_async_engine(url, echo=False, future=True)
 
 
-def get_async_session(url: str | URL) -> async_sessionmaker[AsyncSession]:
+def get_async_db_session(url: str | URL) -> async_sessionmaker[AsyncSession]:
     return async_sessionmaker(get_engine(url), expire_on_commit=False)
 
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    async_session = get_async_session(url=settings.DB_URL)
+async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
+    async_session = get_async_db_session(url=settings.DB_URL)
 
     async with async_session() as session:
         try:
