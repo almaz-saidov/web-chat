@@ -6,6 +6,6 @@ from fastapi.staticfiles import StaticFiles
 
 def setup_static_files(app: FastAPI) -> None:
     BASE_DIR = Path(__file__).resolve().parent.parent
-    TEMPLATES_DIR = BASE_DIR / "templates"
+    STATIC_DIR = BASE_DIR / "static"
 
-    app.mount("/", StaticFiles(directory=TEMPLATES_DIR, html=True), name="templates")
+    app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
