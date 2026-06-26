@@ -12,17 +12,20 @@ from core.exceptions import (
     AccessTokenExpiredHTTPException,
     InvalidTokenHTTPException,
     RefreshTokenExpiredHTTPException,
+    SignatureVerificationFailedHTTPException,
     TokenIsInvalidOrExpiredWebSocketException,
     UserAlreadyExistsHTTPException,
     WrongUsernameOrPasswordHTTPException,
 )
 from schemas.jwt import JWTPayloadSchema
 from schemas.refresh_token import RefreshTokenCreateSchema, RefreshTokenSchema
+from schemas.signature import SignaturePointSchema, SignatureSampleSchema
 from schemas.user import UserCreateDatabaseSchema, UserCreateSchema, UserLoginSchema, UserSchema
 from services.auth_service import AuthService
 from services.cookies_service import CookiesService
 from services.jwt_service import JWTService
 from services.refresh_token_service import RefreshTokenService
+from services.signature_service import SignatureService
 from services.user_service import UserService
 
 
@@ -55,6 +58,24 @@ def make_refresh_token_schema(
         created_at=datetime.now(timezone.utc),
         expires_at=expires_at or datetime.now(timezone.utc) + timedelta(days=1),
     )
+
+
+def make_signature_sample_schema() -> SignatureSampleSchema:
+    return SignatureSampleSchema(
+        points=[
+            SignaturePointSchema(x=0, y=0, pressure=0.5, tilt_x=0, tilt_y=0, time_ms=0),
+            SignaturePointSchema(x=1, y=1, pressure=0.5, tilt_x=0, tilt_y=0, time_ms=50),
+            SignaturePointSchema(x=2, y=1, pressure=0.5, tilt_x=0, tilt_y=0, time_ms=100),
+            SignaturePointSchema(x=3, y=2, pressure=0.5, tilt_x=0, tilt_y=0, time_ms=150),
+            SignaturePointSchema(x=4, y=3, pressure=0.5, tilt_x=0, tilt_y=0, time_ms=200),
+        ],
+        duration_ms=200,
+        break_count=0,
+    )
+
+
+def make_signature_samples() -> list[SignatureSampleSchema]:
+    return [make_signature_sample_schema() for _ in range(5)]
 
 
 def make_request() -> Request:
@@ -106,17 +127,26 @@ def make_cookies_service_mock(refresh_token_from_cookies: str | None = None) -> 
     return cookies_service
 
 
+def make_signature_service_mock(signature_verified: bool = True) -> Mock:
+    signature_service = Mock(spec=SignatureService)
+    signature_service.create_template = AsyncMock(return_value=None)
+    signature_service.verify_signature = AsyncMock(return_value=signature_verified)
+    return signature_service
+
+
 def make_service(
     jwt_service: Mock | None = None,
     user_service: Mock | None = None,
     refresh_token_service: Mock | None = None,
     cookies_service: Mock | None = None,
+    signature_service: Mock | None = None,
 ) -> AuthService:
     return AuthService(
         jwt_service=cast(JWTService, jwt_service or make_jwt_service_mock()),
         user_service=cast(UserService, user_service or make_user_service_mock()),
         refresh_token_service=cast(RefreshTokenService, refresh_token_service or make_refresh_token_service_mock()),
         cookies_service=cast(CookiesService, cookies_service or make_cookies_service_mock()),
+        signature_service=cast(SignatureService, signature_service or make_signature_service_mock()),
     )
 
 
@@ -130,11 +160,14 @@ async def create_user_from_create_data(user_create_data: UserCreateDatabaseSchem
 async def test_register_user_creates_user_with_hashed_password() -> None:
     user_service = make_user_service_mock()
     user_service.create = AsyncMock(side_effect=create_user_from_create_data)
-    service = make_service(user_service=user_service)
+    signature_service = make_signature_service_mock()
+    signature_samples = make_signature_samples()
+    service = make_service(user_service=user_service, signature_service=signature_service)
     user_create_data = UserCreateSchema(
         username="almaz",
         password="secret123",
         password_confirmation="secret123",
+        signature_samples=signature_samples,
     )
 
     result = await service.register_user(user_create_data=user_create_data)
@@ -152,16 +185,22 @@ async def test_register_user_creates_user_with_hashed_password() -> None:
         user_create_data.password.encode("utf-8"),
         created_user_data.password_hash.encode("utf-8"),
     ), "Stored password hash must match original password"
+    signature_service.create_template.assert_awaited_once_with(
+        user_id=result.id,
+        signature_samples=signature_samples,
+    )
 
 
 async def test_register_user_raises_error_when_username_exists() -> None:
     user = make_user_schema(username="almaz")
     user_service = make_user_service_mock(user_by_username=user)
-    service = make_service(user_service=user_service)
+    signature_service = make_signature_service_mock()
+    service = make_service(user_service=user_service, signature_service=signature_service)
     user_create_data = UserCreateSchema(
         username="almaz",
         password="secret123",
         password_confirmation="secret123",
+        signature_samples=make_signature_samples(),
     )
 
     with pytest.raises(UserAlreadyExistsHTTPException):
@@ -169,6 +208,7 @@ async def test_register_user_raises_error_when_username_exists() -> None:
 
     user_service.get_by_username.assert_awaited_once_with(username=user_create_data.username)
     user_service.create.assert_not_awaited()
+    signature_service.create_template.assert_not_awaited()
 
 
 async def test_authenticate_user_returns_access_token_and_sets_refresh_cookie() -> None:
@@ -177,20 +217,24 @@ async def test_authenticate_user_returns_access_token_and_sets_refresh_cookie() 
     jwt_service = make_jwt_service_mock()
     refresh_token_service = make_refresh_token_service_mock(refresh_token=refresh_token)
     cookies_service = make_cookies_service_mock()
+    signature_service = make_signature_service_mock(signature_verified=True)
+    signature_sample = make_signature_sample_schema()
     response = Response()
     service = make_service(
         jwt_service=jwt_service,
         user_service=make_user_service_mock(user_by_username=user),
         refresh_token_service=refresh_token_service,
         cookies_service=cookies_service,
+        signature_service=signature_service,
     )
 
     result = await service.authenticate_user(
-        login_data=UserLoginSchema(username=user.username, password="secret123"),
+        login_data=UserLoginSchema(username=user.username, password="secret123", signature_sample=signature_sample),
         response=response,
     )
 
     assert result.access_token == "access-token", "Authenticate must return encoded access token"
+    signature_service.verify_signature.assert_awaited_once_with(user_id=user.id, signature_sample=signature_sample)
     jwt_service.encode_jwt.assert_called_once_with(payload=JWTPayloadSchema(sub=str(user.id), username=user.username))
     refresh_token_service.create_token.assert_awaited_once()
     refresh_token_create_data = refresh_token_service.create_token.await_args.kwargs["refresh_token_create_data"]
@@ -204,17 +248,49 @@ async def test_authenticate_user_returns_access_token_and_sets_refresh_cookie() 
 async def test_authenticate_user_raises_error_for_wrong_password() -> None:
     user = make_user_schema(password_hash=make_password_hash("secret123"))
     jwt_service = make_jwt_service_mock()
+    signature_service = make_signature_service_mock()
     service = make_service(
         jwt_service=jwt_service,
         user_service=make_user_service_mock(user_by_username=user),
+        signature_service=signature_service,
     )
 
     with pytest.raises(WrongUsernameOrPasswordHTTPException):
         await service.authenticate_user(
-            login_data=UserLoginSchema(username=user.username, password="wrong-password"),
+            login_data=UserLoginSchema(
+                username=user.username,
+                password="wrong-password",
+                signature_sample=make_signature_sample_schema(),
+            ),
             response=Response(),
         )
 
+    signature_service.verify_signature.assert_not_awaited()
+    jwt_service.encode_jwt.assert_not_called()
+
+
+async def test_authenticate_user_raises_error_for_wrong_signature() -> None:
+    user = make_user_schema(password_hash=make_password_hash("secret123"))
+    jwt_service = make_jwt_service_mock()
+    signature_service = make_signature_service_mock(signature_verified=False)
+    signature_sample = make_signature_sample_schema()
+    service = make_service(
+        jwt_service=jwt_service,
+        user_service=make_user_service_mock(user_by_username=user),
+        signature_service=signature_service,
+    )
+
+    with pytest.raises(SignatureVerificationFailedHTTPException):
+        await service.authenticate_user(
+            login_data=UserLoginSchema(
+                username=user.username,
+                password="secret123",
+                signature_sample=signature_sample,
+            ),
+            response=Response(),
+        )
+
+    signature_service.verify_signature.assert_awaited_once_with(user_id=user.id, signature_sample=signature_sample)
     jwt_service.encode_jwt.assert_not_called()
 
 
