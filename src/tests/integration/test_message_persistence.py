@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, cast
 
 from fastapi import status
 from httpx import AsyncClient, Response
@@ -16,11 +16,30 @@ def make_username(prefix: str = "message_user") -> str:
     return f"{prefix}_{uuid.uuid4().hex}"
 
 
-def make_register_payload(username: str | None = None, password: str = DEFAULT_PASSWORD) -> dict[str, str]:
+def make_signature_sample() -> dict[str, object]:
+    return {
+        "points": [
+            {"x": 0, "y": 0, "pressure": 0.5, "tilt_x": 0, "tilt_y": 0, "time_ms": 0},
+            {"x": 1, "y": 1, "pressure": 0.5, "tilt_x": 0, "tilt_y": 0, "time_ms": 50},
+            {"x": 2, "y": 1, "pressure": 0.5, "tilt_x": 0, "tilt_y": 0, "time_ms": 100},
+            {"x": 3, "y": 2, "pressure": 0.5, "tilt_x": 0, "tilt_y": 0, "time_ms": 150},
+            {"x": 4, "y": 3, "pressure": 0.5, "tilt_x": 0, "tilt_y": 0, "time_ms": 200},
+        ],
+        "duration_ms": 200,
+        "break_count": 0,
+    }
+
+
+def make_signature_samples() -> list[dict[str, object]]:
+    return [make_signature_sample() for _ in range(5)]
+
+
+def make_register_payload(username: str | None = None, password: str = DEFAULT_PASSWORD) -> dict[str, object]:
     return {
         "username": username or make_username(),
         "password": password,
         "password_confirmation": password,
+        "signature_samples": make_signature_samples(),
     }
 
 
@@ -28,7 +47,7 @@ def make_auth_headers(access_token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {access_token}"}
 
 
-async def register_user(async_client: AsyncClient, payload: dict[str, str]) -> Response:
+async def register_user(async_client: AsyncClient, payload: dict[str, object]) -> Response:
     response = await async_client.post("/api/auth/register", json=payload)
 
     assert response.status_code == status.HTTP_201_CREATED, "Register helper must create user successfully"
@@ -41,6 +60,7 @@ async def login_user(async_client: AsyncClient, username: str, password: str = D
         json={
             "username": username,
             "password": password,
+            "signature_sample": make_signature_sample(),
         },
     )
 
@@ -64,10 +84,10 @@ async def create_authorized_user(async_client: AsyncClient, db_session: AsyncSes
     await register_user(async_client=async_client, payload=payload)
     access_token = await login_user(
         async_client=async_client,
-        username=payload["username"],
-        password=payload["password"],
+        username=cast(str, payload["username"]),
+        password=cast(str, payload["password"]),
     )
-    user = await get_user_by_username(db_session=db_session, username=payload["username"])
+    user = await get_user_by_username(db_session=db_session, username=cast(str, payload["username"]))
 
     return user, access_token
 
