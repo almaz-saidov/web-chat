@@ -15,9 +15,9 @@ def test_decode_jwt_returns_payload_for_encoded_token(jwt_keys: None) -> None:
     token = service.encode_jwt(payload=payload)
     decoded_payload = service.decode_jwt(token=token)
 
-    assert decoded_payload.sub == payload.sub
-    assert decoded_payload.username == payload.username
-    assert decoded_payload.exp is not None
+    assert decoded_payload.sub == payload.sub, "Decoded JWT subject must match encoded payload subject"
+    assert decoded_payload.username == payload.username, "Decoded JWT username must match encoded payload username"
+    assert decoded_payload.exp is not None, "Decoded JWT payload must contain expiration timestamp"
 
 
 def test_decode_jwt_raises_error_for_invalid_token(jwt_keys: None) -> None:

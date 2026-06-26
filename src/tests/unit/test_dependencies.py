@@ -46,7 +46,7 @@ async def test_get_current_user_authorizes_credentials_token() -> None:
         auth_service=cast(AuthService, auth_service),
     )
 
-    assert result == user
+    assert result == user, "Current user dependency must return the user authorized by AuthService"
     auth_service.authorize_user.assert_awaited_once_with("access-token")
 
 
@@ -60,7 +60,7 @@ async def test_get_current_user_from_ws_authorizes_query_token() -> None:
         auth_service=cast(AuthService, auth_service),
     )
 
-    assert result == user
+    assert result == user, "WebSocket user dependency must return the user authorized by AuthService"
     auth_service.authorize_websocket_user.assert_awaited_once_with("access-token")
 
 

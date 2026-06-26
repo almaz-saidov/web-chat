@@ -43,7 +43,7 @@ async def test_get_all_returns_repository_messages() -> None:
 
     result = await service.get_all()
 
-    assert result == messages
+    assert result == messages, "MessageService.get_all must return messages from repository"
     repository.get_all.assert_awaited_once_with()
 
 
@@ -57,5 +57,5 @@ async def test_create_returns_created_message() -> None:
 
     result = await service.create(message_create_data=message_create_data, user=user)
 
-    assert result == created_message
+    assert result == created_message, "MessageService.create must return the message created by repository"
     repository.create.assert_awaited_once_with(message_create_data=message_create_data, user=user)

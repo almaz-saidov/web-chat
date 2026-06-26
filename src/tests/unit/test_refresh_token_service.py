@@ -39,7 +39,7 @@ def test_validate_refresh_token_str_returns_uuid_for_valid_value() -> None:
 
     result = service.validate_refresh_token_str(refresh_token_str=str(token))
 
-    assert result == token
+    assert result == token, "Valid refresh token string must be converted to UUID"
 
 
 def test_validate_refresh_token_str_raises_error_for_invalid_value() -> None:
@@ -57,7 +57,7 @@ async def test_get_by_token_returns_refresh_token_when_it_exists() -> None:
 
     result = await service.get_by_token(token=refresh_token.refresh_token)
 
-    assert result == refresh_token
+    assert result == refresh_token, "RefreshTokenService must return refresh token found by repository"
     repository.get_by_token.assert_awaited_once_with(token=refresh_token.refresh_token)
 
 
@@ -86,7 +86,7 @@ async def test_create_token_deletes_existing_token_for_user_before_create() -> N
 
     result = await service.create_token(refresh_token_create_data=create_data)
 
-    assert result == created_token
+    assert result == created_token, "RefreshTokenService.create_token must return token created by repository"
     repository.get_by_user_id.assert_awaited_once_with(user_id=user_id)
     repository.force_delete_by_user_id.assert_awaited_once_with(user_id=user_id)
     repository.create.assert_awaited_once_with(refresh_token_create_data=create_data)

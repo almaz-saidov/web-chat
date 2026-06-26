@@ -20,7 +20,9 @@ async def test_connect_accepts_websocket_and_stores_username() -> None:
     await manager.connect(websocket=cast(WebSocket, websocket), username="almaz")
 
     websocket.accept.assert_awaited_once_with()
-    assert manager.active_connections[cast(WebSocket, websocket)] == "almaz"
+    assert manager.active_connections[cast(WebSocket, websocket)] == "almaz", (
+        "ConnectionManager must store username for accepted websocket"
+    )
 
 
 def test_disconnect_removes_active_connection() -> None:
@@ -30,7 +32,7 @@ def test_disconnect_removes_active_connection() -> None:
 
     manager.disconnect(websocket=cast(WebSocket, websocket))
 
-    assert cast(WebSocket, websocket) not in manager.active_connections
+    assert cast(WebSocket, websocket) not in manager.active_connections, "Disconnected websocket must be removed"
 
 
 async def test_broadcast_sends_message_to_all_active_connections() -> None:
