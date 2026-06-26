@@ -1,4 +1,7 @@
 const loginButton = document.querySelector('#loginForm button[type="submit"]');
+const errorElement = document.getElementById('error');
+const ERROR_VISIBLE_TIME_MS = 1500;
+let errorHideTimeoutId = null;
 
 const signaturePad = createSignaturePad({
     canvasId: 'signatureCanvas',
@@ -8,8 +11,18 @@ const signaturePad = createSignaturePad({
 });
 
 function showError(message) {
-    document.getElementById('error').style.display = 'block';
-    document.getElementById('error').textContent = message;
+    if (errorHideTimeoutId) {
+        clearTimeout(errorHideTimeoutId);
+    }
+
+    errorElement.style.display = 'block';
+    errorElement.textContent = message;
+
+    errorHideTimeoutId = setTimeout(() => {
+        errorElement.style.display = 'none';
+        errorElement.textContent = '';
+        errorHideTimeoutId = null;
+    }, ERROR_VISIBLE_TIME_MS);
 }
 
 function getErrorMessage(error, fallbackMessage) {
