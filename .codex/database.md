@@ -45,7 +45,7 @@
 
 ### Связи
 
-- Message -> User (Many-to-One)
+- Message -> User (Many-to-One).
 
 Каждое сообщение принадлежит одному пользователю.
 
