@@ -142,14 +142,16 @@ async def test_register_user_creates_user_with_hashed_password() -> None:
     user_service.get_by_username.assert_awaited_once_with(username=user_create_data.username)
     user_service.create.assert_awaited_once()
     created_user_data = user_service.create.await_args.kwargs["user_create_data"]
-    assert isinstance(created_user_data, UserCreateDatabaseSchema)
-    assert result.username == user_create_data.username
-    assert created_user_data.username == user_create_data.username
-    assert created_user_data.password_hash != user_create_data.password
+    assert isinstance(created_user_data, UserCreateDatabaseSchema), (
+        "AuthService must pass database user creation schema to UserService"
+    )
+    assert result.username == user_create_data.username, "Registered user response must preserve username"
+    assert created_user_data.username == user_create_data.username, "Created database user must preserve username"
+    assert created_user_data.password_hash != user_create_data.password, "Password must be hashed before persistence"
     assert bcrypt.checkpw(
         user_create_data.password.encode("utf-8"),
         created_user_data.password_hash.encode("utf-8"),
-    )
+    ), "Stored password hash must match original password"
 
 
 async def test_register_user_raises_error_when_username_exists() -> None:
@@ -188,12 +190,14 @@ async def test_authenticate_user_returns_access_token_and_sets_refresh_cookie() 
         response=response,
     )
 
-    assert result.access_token == "access-token"
+    assert result.access_token == "access-token", "Authenticate must return encoded access token"
     jwt_service.encode_jwt.assert_called_once_with(payload=JWTPayloadSchema(sub=str(user.id), username=user.username))
     refresh_token_service.create_token.assert_awaited_once()
     refresh_token_create_data = refresh_token_service.create_token.await_args.kwargs["refresh_token_create_data"]
-    assert isinstance(refresh_token_create_data, RefreshTokenCreateSchema)
-    assert refresh_token_create_data.user_id == user.id
+    assert isinstance(refresh_token_create_data, RefreshTokenCreateSchema), (
+        "Authenticate must create refresh token using refresh token creation schema"
+    )
+    assert refresh_token_create_data.user_id == user.id, "Refresh token must be created for authenticated user"
     cookies_service.set_cookies.assert_called_once_with(response=response, refresh_token=refresh_token)
 
 
@@ -223,7 +227,7 @@ async def test_authorize_user_returns_user_from_token_payload() -> None:
 
     result = await service.authorize_user(token="access-token")
 
-    assert result == user
+    assert result == user, "Authorize must return user resolved from decoded token payload"
     jwt_service.decode_jwt.assert_called_once_with(token="access-token")
     user_service.get_by_id.assert_awaited_once_with(user_id=user.id)
 
@@ -278,7 +282,7 @@ async def test_refresh_tokens_creates_new_access_token_for_valid_refresh_cookie(
 
     result = await service.refresh_tokens(request=make_request(), response=response)
 
-    assert result.access_token == "access-token"
+    assert result.access_token == "access-token", "Refresh flow must return newly encoded access token"
     cookies_service.get_refresh_token_from_cookies.assert_called_once()
     refresh_token_service.validate_refresh_token_str.assert_called_once_with(refresh_token_str=str(refresh_token_value))
     refresh_token_service.get_by_token.assert_awaited_once_with(token=refresh_token_value)

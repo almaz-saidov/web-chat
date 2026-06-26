@@ -40,7 +40,7 @@ async def test_get_by_id_returns_user_when_user_exists() -> None:
 
     result = await service.get_by_id(user_id=user.id)
 
-    assert result == user
+    assert result == user, "UserService.get_by_id must return user found by repository"
     repository.get_by_id.assert_awaited_once_with(user_id=user.id)
 
 
@@ -64,7 +64,7 @@ async def test_get_by_username_returns_repository_result() -> None:
 
     result = await service.get_by_username(username="almaz")
 
-    assert result == user
+    assert result == user, "UserService.get_by_username must return repository result"
     repository.get_by_username.assert_awaited_once_with(username="almaz")
 
 
@@ -80,5 +80,5 @@ async def test_create_returns_created_user() -> None:
 
     result = await service.create(user_create_data=user_create_data)
 
-    assert result == created_user
+    assert result == created_user, "UserService.create must return user created by repository"
     repository.create.assert_awaited_once_with(user_create_data=user_create_data)

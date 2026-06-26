@@ -35,10 +35,10 @@ def test_set_cookies_sets_refresh_token_cookie() -> None:
     service.set_cookies(response=response, refresh_token=refresh_token)
 
     cookie = response.headers["set-cookie"]
-    assert f"refresh_token={refresh_token.refresh_token}" in cookie
-    assert "HttpOnly" in cookie
-    assert "Secure" in cookie
-    assert "Path=/api/auth" in cookie
+    assert f"refresh_token={refresh_token.refresh_token}" in cookie, "Refresh token cookie must contain token value"
+    assert "HttpOnly" in cookie, "Refresh token cookie must be HttpOnly"
+    assert "Secure" in cookie, "Refresh token cookie must be Secure"
+    assert "Path=/api/auth" in cookie, "Refresh token cookie must be scoped to auth path"
 
 
 def test_delete_cookies_expires_refresh_token_cookie() -> None:
@@ -48,9 +48,9 @@ def test_delete_cookies_expires_refresh_token_cookie() -> None:
     service.delete_cookies(response=response)
 
     cookie = response.headers["set-cookie"]
-    assert "refresh_token=" in cookie
-    assert "Max-Age=0" in cookie
-    assert "Path=/api/auth" in cookie
+    assert "refresh_token=" in cookie, "Delete cookies must target refresh token cookie"
+    assert "Max-Age=0" in cookie, "Delete cookies must expire refresh token cookie immediately"
+    assert "Path=/api/auth" in cookie, "Delete cookies must use the auth cookie path"
 
 
 def test_get_refresh_token_from_cookies_returns_cookie_value() -> None:
@@ -60,7 +60,7 @@ def test_get_refresh_token_from_cookies_returns_cookie_value() -> None:
 
     result = service.get_refresh_token_from_cookies(request=request)
 
-    assert result == str(refresh_token)
+    assert result == str(refresh_token), "CookiesService must return refresh token value from request cookies"
 
 
 def test_get_refresh_token_from_cookies_raises_error_when_cookie_is_missing() -> None:
