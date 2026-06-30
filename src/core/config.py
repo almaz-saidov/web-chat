@@ -26,17 +26,21 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=15, gt=0)
     REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=30, gt=0)
 
-    SIGNATURE_SAMPLE_COUNT: int = Field(default=5, gt=0)
-    SIGNATURE_MIN_POINT_COUNT: int = Field(default=5, gt=0)
-    SIGNATURE_NORMALIZED_POINT_COUNT: int = Field(default=1024, gt=1)
+    SIGNATURE_MIN_POINT_COUNT: int = Field(default=2, gt=2)
+    SIGNATURE_SAMPLE_COUNT: int = Field(default=5, gt=0, le=10)
+    SIGNATURE_NORMALIZED_POINT_COUNT: int = Field(default=1024, gt=1, le=4096)
+
+    SIGNATURE_MAX_DURATION_PENALTY_RATIO: float = Field(default=2.0, ge=0, le=10)
+    SIGNATURE_TIME_WEIGHT: float = Field(default=0.15, ge=0, le=10)
+
+    SIGNATURE_BREAK_COUNT_WEIGHT: float = Field(default=0.3, ge=0, le=10)
+    SIGNATURE_PRESSURE_WEIGHT: float = Field(default=0.35, ge=0, le=10)
+    SIGNATURE_TILT_WEIGHT: float = Field(default=0.35, ge=0, le=10)
+
+    SIGNATURE_DURATION_WEIGHT: float = Field(default=0.4, ge=0, le=10)
+    SIGNATURE_COORDINATE_WEIGHT: float = Field(default=1.0, ge=0, le=10)
+
     SIGNATURE_MATCH_THRESHOLD: float = Field(default=0.85, ge=0, le=1)
-    SIGNATURE_COORDINATE_WEIGHT: float = Field(default=1.0, ge=0)
-    SIGNATURE_PRESSURE_WEIGHT: float = Field(default=0.35, ge=0)
-    SIGNATURE_TILT_WEIGHT: float = Field(default=0.35, ge=0)
-    SIGNATURE_TIME_WEIGHT: float = Field(default=0.15, ge=0)
-    SIGNATURE_DURATION_WEIGHT: float = Field(default=0.4, ge=0)
-    SIGNATURE_BREAK_COUNT_WEIGHT: float = Field(default=0.3, ge=0)
-    SIGNATURE_MAX_DURATION_PENALTY_RATIO: float = Field(default=2.0, ge=0)
 
     TEST_DB_URL: str | None = None
 
