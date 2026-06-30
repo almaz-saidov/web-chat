@@ -20,8 +20,8 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "db_pass"
     POSTGRES_DB: str = "db_name"
 
-    PRIVATE_KEY_PATH: Path = Field(default=Path(os.path.join(BASE_DIR, "core", "certs", "jwt-private.pem")))
-    PUBLIC_KEY_PATH: Path = Field(default=Path(os.path.join(BASE_DIR, "core", "certs", "jwt-public.pem")))
+    PRIVATE_KEY_PATH: Path = Path(os.path.join(BASE_DIR, "core", "certs", "jwt-private.pem"))
+    PUBLIC_KEY_PATH: Path = Path(os.path.join(BASE_DIR, "core", "certs", "jwt-public.pem"))
     ALGORITHM: str = "RS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=15, gt=0)
     REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=30, gt=0)
