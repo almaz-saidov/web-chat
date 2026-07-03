@@ -5,20 +5,21 @@ services:
     build: ./src
     working_dir: /usr/web-chat/src
     command: sh -c "
-      alembic upgrade head &&
-      python main.py
+      poetry run alembic upgrade head &&
+      poetry run python main.py
       "
     env_file: ./src/core/envs/.env
     networks:
       - web-chat-network
     ports:
-      - ${SERVER_PORT}:${SERVER_PORT}
+      - "${SERVER_PORT:-8000}:${SERVER_PORT:-8000}"
     volumes:
       - ./src/core/certs:/usr/web-chat/src/core/certs
     depends_on:
-      - web-chat-db
+      web-chat-db:
+        condition: service_healthy
     healthcheck:
-      test: curl -f http://localhost:${SERVER_PORT}/api/healthcheck
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:$${SERVER_PORT:-8000}/api/healthcheck', timeout=3)\""]
       interval: 60s
       timeout: 3s
       retries: 3
@@ -27,21 +28,22 @@ services:
     image: postgres:16-alpine
     container_name: web-chat-db
     restart: always
-    command: -p ${POSTGRES_PORT}
+    command: ["postgres", "-p", "${POSTGRES_PORT:-5432}"]
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_USER: ${POSTGRES_USER:-db_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-db_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-db_name}
     networks:
       - web-chat-network
     expose:
-      - ${POSTGRES_PORT}
+      - "${POSTGRES_PORT:-5432}"
     ports:
-      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+      - "${POSTGRES_PORT:-5432}:${POSTGRES_PORT:-5432}"
     volumes:
       - web-chat-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: pg_isready -p ${POSTGRES_PORT} -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+      test: ["CMD-SHELL", "pg_isready -p $${POSTGRES_PORT:-5432} -U $${POSTGRES_USER:-db_user} -d $${POSTGRES_DB:-db_name}"]
       interval: 60s
       timeout: 3s
       retries: 3
