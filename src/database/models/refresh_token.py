@@ -5,10 +5,10 @@ from sqlalchemy import DateTime, ForeignKey, Integer, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from database.models import Base
+from database.models import BaseModel
 
 
-class RefreshToken(Base):
+class RefreshToken(BaseModel):
     __tablename__ = "refresh_tokens"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -25,4 +25,6 @@ class RefreshToken(Base):
         nullable=False,
         server_default=func.now(),
     )
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )

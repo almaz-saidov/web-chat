@@ -28,7 +28,9 @@ class BaseUserOperationSchema(BaseModel):
     @classmethod
     def validate_username(cls, v: str) -> str:
         if not re.match(r"^[a-zA-Z0-9_]+$", v):
-            raise ValueError("Username can only contain letters, numbers and underscores")
+            raise ValueError(
+                "Username can only contain letters, numbers and underscores"
+            )
         return v
 
 
