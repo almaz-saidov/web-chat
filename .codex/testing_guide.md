@@ -16,30 +16,28 @@ poetry run pytest
 ```text
 src/tests/
 ├── conftest.py
-├── unit/
-├── api/
-└── integration/
+├── unit_tests/
+├── api_tests/
+└── integration_tests/
 ```
-
-Не добавлять `__init__.py` в `tests/api`, `tests/unit`, `tests/integration`: это может конфликтовать с пакетами приложения вроде `api`.
 
 ## Общие правила
 
-- Все тесты асинхронные, если они ходят в API или БД;
-- Для всех `assert` должны быть написаны сообщения в стиле "что ожидали";
-- Для HTTP использовать `httpx.AsyncClient` из fixture `async_client`;
-- Для прямой проверки БД использовать fixture `db_session`;
-- Для тестовой БД использовать только PostgreSQL из `testcontainers`;
-- Не подключаться к рабочей БД;
-- Не хардкодить порт тестовой БД: URL формируется из контейнера;
-- Таблицы создавать через `alembic upgrade head`, не через `Base.metadata.create_all()`;
-- Не писать тесты “на всякий случай”. Покрывать только поведение, которое важно для проекта;
-- Один тест должен проверять один сценарий;
-- Названия тестов должны описывать условие и ожидаемый результат.
+- все тесты асинхронные, если они ходят в API или БД;
+- для всех `assert` должны быть написаны сообщения в стиле "что ожидали";
+- для HTTP использовать `httpx.AsyncClient` из fixture `async_client`;
+- для прямой проверки БД использовать fixture `db_session`;
+- для тестовой БД использовать только PostgreSQL из `testcontainers`;
+- не подключаться к рабочей БД;
+- не хардкодить порт тестовой БД: URL формируется из контейнера;
+- таблицы создавать через `alembic upgrade head`, не через `Base.metadata.create_all()`;
+- не писать тесты “на всякий случай”. Покрывать только поведение, которое важно для проекта;
+- один тест должен проверять один сценарий;
+- названия тестов должны описывать условие и ожидаемый результат.
 
 ## Unit-тесты
 
-Путь: `src/tests/unit/`.
+Путь: `src/tests/unit_tests/`.
 
 Unit-тесты проверяют отдельную логику без API и без БД.
 
@@ -59,7 +57,7 @@ Unit-тесты проверяют отдельную логику без API и
 
 ## API-тесты
 
-Путь: `src/tests/api/`.
+Путь: `src/tests/api_tests/`.
 
 API-тесты проверяют HTTP-контракт: статус-коды, обязательные поля, формат базового ответа.
 
@@ -87,7 +85,7 @@ async def test_register_returns_201_for_valid_payload(async_client):
 
 ## Integration-тесты
 
-Путь: `src/tests/integration/`.
+Путь: `src/tests/integration_tests/`.
 
 Integration-тесты проверяют цепочку:
 
@@ -122,10 +120,10 @@ async def test_create_message_persists_data(async_client, db_session):
 
 ## Авторизация в тестах
 
-- Не использовать реальные JWT-ключи;
-- Использовать fixture `jwt_keys`;
-- Для protected endpoints либо проходить login flow, либо аккуратно генерировать тестовый access token через `JWTService`;
-- Refresh token проверять через cookie и таблицу `refresh_tokens`.
+- не использовать реальные JWT-ключи;
+- использовать fixture `jwt_keys`;
+- для protected endpoints либо проходить login flow, либо аккуратно генерировать тестовый access token через `JWTService`;
+- refresh token проверять через cookie и таблицу `refresh_tokens`.
 
 ## Данные и фикстуры
 
@@ -167,8 +165,8 @@ poetry run pytest
 
 ## Что не делать
 
-- Не мокать БД в integration-тестах;
-- Не проверять внутреннюю реализацию route-функций через прямой вызов, если нужен API-контракт;
-- Не делать большие end-to-end сценарии, если достаточно unit/API/integration-теста;
-- Не добавлять сложные фабрики, plugins или fixtures;
-- Не тестировать frontend через браузер в рамках backend test suite.
+- мокать БД в integration-тестах;
+- проверять внутреннюю реализацию route-функций через прямой вызов, если нужен API-контракт;
+- делать большие end-to-end сценарии, если достаточно unit/API/integration-теста;
+- добавлять сложные фабрики, plugins или fixtures;
+- тестировать frontend через браузер в рамках backend test suite.

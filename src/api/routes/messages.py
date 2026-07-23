@@ -22,4 +22,6 @@ async def create_message(
     user: UserSchema = Depends(get_current_user),
     message_service: MessageService = Depends(get_message_service),
 ) -> MessageSchema:
-    return await message_service.create(message_create_data=message_create_data, user=user)
+    return await message_service.create(
+        message_create_data=message_create_data, user=user
+    )
