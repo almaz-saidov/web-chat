@@ -6,9 +6,7 @@ from schemas.refresh_token import RefreshTokenSchema
 
 
 class CookiesService:
-    def set_cookies(
-        self, response: Response, refresh_token: RefreshTokenSchema
-    ) -> None:
+    def set_cookies(self, response: Response, refresh_token: RefreshTokenSchema) -> None:
         response.set_cookie(
             key="refresh_token",
             value=str(refresh_token.refresh_token),

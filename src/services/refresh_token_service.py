@@ -2,26 +2,17 @@ import uuid
 
 from fastapi import Depends
 
-from core.exceptions import (
-    InvalidRefreshTokenFormatHTTPException,
-    InvalidTokenHTTPException,
-)
+from core.exceptions import InvalidRefreshTokenFormatHTTPException, InvalidTokenHTTPException
 from database.repositories.refresh_token_repository import RefreshTokenRepository
 from schemas.refresh_token import RefreshTokenCreateSchema, RefreshTokenSchema
 from services.db_service import DatabaseService
 
 
 class RefreshTokenService(DatabaseService[RefreshTokenRepository]):
-    async def create_token(
-        self, refresh_token_create_data: RefreshTokenCreateSchema
-    ) -> RefreshTokenSchema:
-        await self._force_delete_existing_tokens(
-            refresh_token_create_data=refresh_token_create_data
-        )
+    async def create_token(self, refresh_token_create_data: RefreshTokenCreateSchema) -> RefreshTokenSchema:
+        await self._force_delete_existing_tokens(refresh_token_create_data=refresh_token_create_data)
 
-        return await self._repository.create(
-            refresh_token_create_data=refresh_token_create_data
-        )
+        return await self._repository.create(refresh_token_create_data=refresh_token_create_data)
 
     async def get_by_token(self, token: uuid.UUID) -> RefreshTokenSchema:
         refresh_token = await self._repository.get_by_token(token=token)
@@ -39,15 +30,9 @@ class RefreshTokenService(DatabaseService[RefreshTokenRepository]):
         except ValueError:
             raise InvalidRefreshTokenFormatHTTPException()
 
-    async def _force_delete_existing_tokens(
-        self, refresh_token_create_data: RefreshTokenCreateSchema
-    ) -> None:
-        if await self._repository.get_by_user_id(
-            user_id=refresh_token_create_data.user_id
-        ):
-            await self._repository.force_delete_by_user_id(
-                user_id=refresh_token_create_data.user_id
-            )
+    async def _force_delete_existing_tokens(self, refresh_token_create_data: RefreshTokenCreateSchema) -> None:
+        if await self._repository.get_by_user_id(user_id=refresh_token_create_data.user_id):
+            await self._repository.force_delete_by_user_id(user_id=refresh_token_create_data.user_id)
 
 
 def get_refresh_token_service(

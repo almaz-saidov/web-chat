@@ -69,9 +69,7 @@ async def test_get_by_username_returns_repository_result() -> None:
 
 
 async def test_create_returns_created_user() -> None:
-    user_create_data = UserCreateDatabaseSchema(
-        username="almaz", password_hash="password-hash"
-    )
+    user_create_data = UserCreateDatabaseSchema(username="almaz", password_hash="password-hash")
     created_user = make_user_schema(
         username=user_create_data.username,
         password_hash=user_create_data.password_hash,
@@ -82,7 +80,5 @@ async def test_create_returns_created_user() -> None:
 
     result = await service.create(user_create_data=user_create_data)
 
-    assert result == created_user, (
-        "UserService.create must return user created by repository"
-    )
+    assert result == created_user, "UserService.create must return user created by repository"
     repository.create.assert_awaited_once_with(user_create_data=user_create_data)

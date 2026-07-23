@@ -36,19 +36,14 @@ def make_service(repository: Mock) -> MessageService:
 
 
 async def test_get_all_returns_repository_messages() -> None:
-    messages = [
-        make_message_schema(content="first"),
-        make_message_schema(content="second"),
-    ]
+    messages = [make_message_schema(content="first"), make_message_schema(content="second")]
     repository = make_repository()
     repository.get_all = AsyncMock(return_value=messages)
     service = make_service(repository=repository)
 
     result = await service.get_all()
 
-    assert result == messages, (
-        "MessageService.get_all must return messages from repository"
-    )
+    assert result == messages, "MessageService.get_all must return messages from repository"
     repository.get_all.assert_awaited_once_with()
 
 
@@ -62,9 +57,5 @@ async def test_create_returns_created_message() -> None:
 
     result = await service.create(message_create_data=message_create_data, user=user)
 
-    assert result == created_message, (
-        "MessageService.create must return the message created by repository"
-    )
-    repository.create.assert_awaited_once_with(
-        message_create_data=message_create_data, user=user
-    )
+    assert result == created_message, "MessageService.create must return the message created by repository"
+    repository.create.assert_awaited_once_with(message_create_data=message_create_data, user=user)

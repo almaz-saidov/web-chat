@@ -18,19 +18,10 @@ from core.exceptions import (
 from schemas.access_token import AccessTokenSchema
 from schemas.jwt import JWTPayloadSchema
 from schemas.refresh_token import RefreshTokenCreateSchema, RefreshTokenSchema
-from schemas.user import (
-    UserCreateDatabaseSchema,
-    UserCreateSchema,
-    UserLoginSchema,
-    UserResponseSchema,
-    UserSchema,
-)
+from schemas.user import UserCreateDatabaseSchema, UserCreateSchema, UserLoginSchema, UserResponseSchema, UserSchema
 from services.cookies_service import CookiesService, get_cookies_service
 from services.jwt_service import JWTService, get_jwt_service
-from services.refresh_token_service import (
-    RefreshTokenService,
-    get_refresh_token_service,
-)
+from services.refresh_token_service import RefreshTokenService, get_refresh_token_service
 from services.user_service import UserService, get_user_service
 
 
@@ -47,12 +38,8 @@ class AuthService:
         self.__refresh_token_service = refresh_token_service
         self.__cookies_service = cookies_service
 
-    async def register_user(
-        self, user_create_data: UserCreateSchema
-    ) -> UserResponseSchema:
-        user = await self.__user_service.get_by_username(
-            username=user_create_data.username
-        )
+    async def register_user(self, user_create_data: UserCreateSchema) -> UserResponseSchema:
+        user = await self.__user_service.get_by_username(username=user_create_data.username)
         if user:
             raise UserAlreadyExistsHTTPException()
 
@@ -64,13 +51,9 @@ class AuthService:
         )
         return UserResponseSchema(**user.model_dump())
 
-    async def authenticate_user(
-        self, login_data: UserLoginSchema, response: Response
-    ) -> AccessTokenSchema:
+    async def authenticate_user(self, login_data: UserLoginSchema, response: Response) -> AccessTokenSchema:
         user = await self.__user_service.get_by_username(username=login_data.username)
-        if not user or not self._verify_password(
-            password=login_data.password, hashed_password=user.password_hash
-        ):
+        if not user or not self._verify_password(password=login_data.password, hashed_password=user.password_hash):
             raise WrongUsernameOrPasswordHTTPException()
 
         access_token = await self._create_tokens(user=user, response=response)
@@ -88,18 +71,12 @@ class AuthService:
             raise InvalidTokenHTTPException()
 
     async def logout_user(self, request: Request, response: Response) -> None:
-        refresh_token_from_cookies_str = (
-            self.__cookies_service.get_refresh_token_from_cookies(request=request)
-        )
-        refresh_token_from_cookies = (
-            self.__refresh_token_service.validate_refresh_token_str(
-                refresh_token_str=refresh_token_from_cookies_str
-            )
+        refresh_token_from_cookies_str = self.__cookies_service.get_refresh_token_from_cookies(request=request)
+        refresh_token_from_cookies = self.__refresh_token_service.validate_refresh_token_str(
+            refresh_token_str=refresh_token_from_cookies_str
         )
 
-        await self.__refresh_token_service.delete_by_token(
-            token=refresh_token_from_cookies
-        )
+        await self.__refresh_token_service.delete_by_token(token=refresh_token_from_cookies)
         self.__cookies_service.delete_cookies(response=response)
 
     async def authorize_websocket_user(self, token: str) -> UserSchema:
@@ -107,28 +84,20 @@ class AuthService:
             payload = self.__jwt_service.decode_jwt(token=token)
             user = await self._get_user_via_payload(payload=payload)
             return user
-        except ExpiredSignatureError, InvalidTokenError:
+        except (ExpiredSignatureError, InvalidTokenError):
             raise TokenIsInvalidOrExpiredWebSocketException()
 
-    async def refresh_tokens(
-        self, request: Request, response: Response
-    ) -> AccessTokenSchema:
-        refresh_token_from_cookies_str = (
-            self.__cookies_service.get_refresh_token_from_cookies(request=request)
-        )
-        refresh_token_from_cookies = (
-            self.__refresh_token_service.validate_refresh_token_str(
-                refresh_token_str=refresh_token_from_cookies_str
-            )
+    async def refresh_tokens(self, request: Request, response: Response) -> AccessTokenSchema:
+        refresh_token_from_cookies_str = self.__cookies_service.get_refresh_token_from_cookies(request=request)
+        refresh_token_from_cookies = self.__refresh_token_service.validate_refresh_token_str(
+            refresh_token_str=refresh_token_from_cookies_str
         )
 
         refresh_token_from_db = await self._validate_refresh_token(
             refresh_token_from_cookies=refresh_token_from_cookies
         )
 
-        user = await self.__user_service.get_by_id(
-            user_id=refresh_token_from_db.user_id
-        )
+        user = await self.__user_service.get_by_id(user_id=refresh_token_from_db.user_id)
         access_token = await self._create_tokens(user=user, response=response)
 
         return AccessTokenSchema(access_token=access_token)
@@ -141,21 +110,15 @@ class AuthService:
         refresh_token = await self.__refresh_token_service.create_token(
             refresh_token_create_data=refresh_token_create_data
         )
-        self.__cookies_service.set_cookies(
-            response=response, refresh_token=refresh_token
-        )
+        self.__cookies_service.set_cookies(response=response, refresh_token=refresh_token)
 
         return access_token
 
     async def _get_user_via_payload(self, payload: JWTPayloadSchema) -> UserSchema:
         return await self.__user_service.get_by_id(user_id=uuid.UUID(payload.sub))
 
-    async def _validate_refresh_token(
-        self, refresh_token_from_cookies: uuid.UUID
-    ) -> RefreshTokenSchema:
-        refresh_token_from_db = await self.__refresh_token_service.get_by_token(
-            token=refresh_token_from_cookies
-        )
+    async def _validate_refresh_token(self, refresh_token_from_cookies: uuid.UUID) -> RefreshTokenSchema:
+        refresh_token_from_db = await self.__refresh_token_service.get_by_token(token=refresh_token_from_cookies)
         if not refresh_token_from_db:
             raise WrongRefreshTokenHTTPException()
 
@@ -175,9 +138,7 @@ class AuthService:
             hashed_password.encode("utf-8"),
         )
 
-    def _get_refresh_token_creation_data(
-        self, user: UserSchema
-    ) -> RefreshTokenCreateSchema:
+    def _get_refresh_token_creation_data(self, user: UserSchema) -> RefreshTokenCreateSchema:
         refresh_token_creation_data = RefreshTokenCreateSchema(
             user_id=user.id,
             expires_at=datetime.now(timezone.utc) + timedelta(days=30),

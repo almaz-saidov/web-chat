@@ -32,9 +32,7 @@ def test_disconnect_removes_active_connection() -> None:
 
     manager.disconnect(websocket=cast(WebSocket, websocket))
 
-    assert cast(WebSocket, websocket) not in manager.active_connections, (
-        "Disconnected websocket must be removed"
-    )
+    assert cast(WebSocket, websocket) not in manager.active_connections, "Disconnected websocket must be removed"
 
 
 async def test_broadcast_sends_message_to_all_active_connections() -> None:

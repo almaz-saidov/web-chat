@@ -9,12 +9,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import (
-    AsyncEngine,
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 from testcontainers.postgres import PostgresContainer
 
 from core.config import settings

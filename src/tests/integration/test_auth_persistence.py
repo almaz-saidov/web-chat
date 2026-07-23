@@ -15,9 +15,7 @@ def make_username(prefix: str = "integration_user") -> str:
     return f"{prefix}_{uuid.uuid4().hex}"
 
 
-def make_register_payload(
-    username: str | None = None, password: str = DEFAULT_PASSWORD
-) -> dict[str, str]:
+def make_register_payload(username: str | None = None, password: str = DEFAULT_PASSWORD) -> dict[str, str]:
     return {
         "username": username or make_username(),
         "password": password,
@@ -39,15 +37,11 @@ def make_refresh_cookie_headers(refresh_token: uuid.UUID) -> dict[str, str]:
 async def register_user(async_client: AsyncClient, payload: dict[str, str]) -> Response:
     response = await async_client.post("/api/auth/register", json=payload)
 
-    assert response.status_code == status.HTTP_201_CREATED, (
-        "Register helper must create user successfully"
-    )
+    assert response.status_code == status.HTTP_201_CREATED, "Register helper must create user successfully"
     return response
 
 
-async def login_user(
-    async_client: AsyncClient, username: str, password: str = DEFAULT_PASSWORD
-) -> Response:
+async def login_user(async_client: AsyncClient, username: str, password: str = DEFAULT_PASSWORD) -> Response:
     response = await async_client.post(
         "/api/auth/login",
         json={
@@ -56,9 +50,7 @@ async def login_user(
         },
     )
 
-    assert response.status_code == status.HTTP_200_OK, (
-        "Login helper must authenticate user successfully"
-    )
+    assert response.status_code == status.HTTP_200_OK, "Login helper must authenticate user successfully"
     return response
 
 
@@ -70,12 +62,8 @@ async def get_user_by_username(db_session: AsyncSession, username: str) -> User:
     return user
 
 
-async def get_refresh_tokens_by_user_id(
-    db_session: AsyncSession, user_id: uuid.UUID
-) -> list[RefreshToken]:
-    result = await db_session.execute(
-        select(RefreshToken).where(RefreshToken.user_id == user_id)
-    )
+async def get_refresh_tokens_by_user_id(db_session: AsyncSession, user_id: uuid.UUID) -> list[RefreshToken]:
+    result = await db_session.execute(select(RefreshToken).where(RefreshToken.user_id == user_id))
     return list(result.scalars().all())
 
 
@@ -87,18 +75,10 @@ async def test_register_persists_user_with_hashed_password(
 
     response = await async_client.post("/api/auth/register", json=payload)
 
-    assert response.status_code == status.HTTP_201_CREATED, (
-        "Register endpoint must create user"
-    )
-    user = await get_user_by_username(
-        db_session=db_session, username=payload["username"]
-    )
-    assert user.username == payload["username"], (
-        "Persisted user must keep registered username"
-    )
-    assert user.password_hash != payload["password"], (
-        "Persisted user password must not be stored as plain text"
-    )
+    assert response.status_code == status.HTTP_201_CREATED, "Register endpoint must create user"
+    user = await get_user_by_username(db_session=db_session, username=payload["username"])
+    assert user.username == payload["username"], "Persisted user must keep registered username"
+    assert user.password_hash != payload["password"], "Persisted user password must not be stored as plain text"
     assert bcrypt.checkpw(
         payload["password"].encode("utf-8"),
         user.password_hash.encode("utf-8"),
@@ -111,9 +91,7 @@ async def test_login_persists_refresh_token_matching_cookie(
 ) -> None:
     payload = make_register_payload()
     await register_user(async_client=async_client, payload=payload)
-    user = await get_user_by_username(
-        db_session=db_session, username=payload["username"]
-    )
+    user = await get_user_by_username(db_session=db_session, username=payload["username"])
 
     response = await login_user(
         async_client=async_client,
@@ -122,18 +100,10 @@ async def test_login_persists_refresh_token_matching_cookie(
     )
 
     refresh_token = get_refresh_token_from_response(response=response)
-    refresh_tokens = await get_refresh_tokens_by_user_id(
-        db_session=db_session, user_id=user.id
-    )
-    assert len(refresh_tokens) == 1, (
-        "Login must persist exactly one refresh token for user"
-    )
-    assert refresh_tokens[0].refresh_token == refresh_token, (
-        "Persisted refresh token must match response cookie"
-    )
-    assert refresh_tokens[0].user_id == user.id, (
-        "Persisted refresh token must belong to authenticated user"
-    )
+    refresh_tokens = await get_refresh_tokens_by_user_id(db_session=db_session, user_id=user.id)
+    assert len(refresh_tokens) == 1, "Login must persist exactly one refresh token for user"
+    assert refresh_tokens[0].refresh_token == refresh_token, "Persisted refresh token must match response cookie"
+    assert refresh_tokens[0].user_id == user.id, "Persisted refresh token must belong to authenticated user"
 
 
 async def test_refresh_replaces_refresh_token_in_database(
@@ -142,9 +112,7 @@ async def test_refresh_replaces_refresh_token_in_database(
 ) -> None:
     payload = make_register_payload()
     await register_user(async_client=async_client, payload=payload)
-    user = await get_user_by_username(
-        db_session=db_session, username=payload["username"]
-    )
+    user = await get_user_by_username(db_session=db_session, username=payload["username"])
     login_response = await login_user(
         async_client=async_client,
         username=payload["username"],
@@ -157,22 +125,12 @@ async def test_refresh_replaces_refresh_token_in_database(
         headers=make_refresh_cookie_headers(refresh_token=original_refresh_token),
     )
 
-    assert response.status_code == status.HTTP_200_OK, (
-        "Refresh endpoint must accept valid refresh token"
-    )
+    assert response.status_code == status.HTTP_200_OK, "Refresh endpoint must accept valid refresh token"
     new_refresh_token = get_refresh_token_from_response(response=response)
-    refresh_tokens = await get_refresh_tokens_by_user_id(
-        db_session=db_session, user_id=user.id
-    )
-    assert len(refresh_tokens) == 1, (
-        "Refresh endpoint must keep exactly one active refresh token for user"
-    )
-    assert refresh_tokens[0].refresh_token == new_refresh_token, (
-        "Database must contain newly issued refresh token"
-    )
-    assert refresh_tokens[0].refresh_token != original_refresh_token, (
-        "Refresh endpoint must replace old refresh token"
-    )
+    refresh_tokens = await get_refresh_tokens_by_user_id(db_session=db_session, user_id=user.id)
+    assert len(refresh_tokens) == 1, "Refresh endpoint must keep exactly one active refresh token for user"
+    assert refresh_tokens[0].refresh_token == new_refresh_token, "Database must contain newly issued refresh token"
+    assert refresh_tokens[0].refresh_token != original_refresh_token, "Refresh endpoint must replace old refresh token"
 
 
 async def test_logout_deletes_refresh_token_from_database(
@@ -181,9 +139,7 @@ async def test_logout_deletes_refresh_token_from_database(
 ) -> None:
     payload = make_register_payload()
     await register_user(async_client=async_client, payload=payload)
-    user = await get_user_by_username(
-        db_session=db_session, username=payload["username"]
-    )
+    user = await get_user_by_username(db_session=db_session, username=payload["username"])
     login_response = await login_user(
         async_client=async_client,
         username=payload["username"],
@@ -196,10 +152,6 @@ async def test_logout_deletes_refresh_token_from_database(
         headers=make_refresh_cookie_headers(refresh_token=refresh_token),
     )
 
-    assert response.status_code == status.HTTP_200_OK, (
-        "Logout endpoint must accept valid refresh token"
-    )
-    refresh_tokens = await get_refresh_tokens_by_user_id(
-        db_session=db_session, user_id=user.id
-    )
+    assert response.status_code == status.HTTP_200_OK, "Logout endpoint must accept valid refresh token"
+    refresh_tokens = await get_refresh_tokens_by_user_id(db_session=db_session, user_id=user.id)
     assert refresh_tokens == [], "Logout endpoint must delete persisted refresh token"
