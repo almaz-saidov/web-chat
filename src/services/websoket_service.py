@@ -20,7 +20,3 @@ class WebSocketService:
 
     async def _disconnect(self, websocket: WebSocket) -> None:
         manager.disconnect(websocket=websocket)
-
-
-def get_websocket_service() -> WebSocketService:
-    return WebSocketService()

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Request, Response, status
 
 from schemas.access_token import AccessTokenSchema
 from schemas.user import UserCreateSchema, UserLoginSchema, UserResponseSchema
-from services.auth_service import AuthService, get_auth_service
+from services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Authorization"])
 
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/auth", tags=["Authorization"])
 )
 async def register_user(
     user_create_data: UserCreateSchema,
-    auth_service: AuthService = Depends(get_auth_service),
+    auth_service: AuthService = Depends(),
 ) -> UserResponseSchema:
     return await auth_service.register_user(user_create_data=user_create_data)
 
@@ -21,7 +21,7 @@ async def register_user(
 async def login_user(
     login_data: UserLoginSchema,
     response: Response,
-    auth_service: AuthService = Depends(get_auth_service),
+    auth_service: AuthService = Depends(),
 ) -> AccessTokenSchema:
     return await auth_service.authenticate_user(
         login_data=login_data, response=response
@@ -32,7 +32,7 @@ async def login_user(
 async def logout_user(
     request: Request,
     response: Response,
-    auth_service: AuthService = Depends(get_auth_service),
+    auth_service: AuthService = Depends(),
 ) -> None:
     await auth_service.logout_user(request=request, response=response)
 
@@ -43,6 +43,6 @@ async def logout_user(
 async def refresh_tokens(
     request: Request,
     response: Response,
-    auth_service: AuthService = Depends(get_auth_service),
+    auth_service: AuthService = Depends(),
 ) -> AccessTokenSchema:
     return await auth_service.refresh_tokens(request=request, response=response)
