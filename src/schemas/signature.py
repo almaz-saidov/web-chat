@@ -16,13 +16,17 @@ class SignaturePointSchema(BaseModel):
 
 
 class SignatureSampleSchema(BaseModel):
-    points: list[SignaturePointSchema] = Field(..., min_length=settings.SIGNATURE_MIN_POINT_COUNT)
+    points: list[SignaturePointSchema] = Field(
+        ..., min_length=settings.SIGNATURE_MIN_POINT_COUNT
+    )
     duration_ms: float = Field(..., gt=0)
     break_count: int = Field(..., ge=0)
 
 
 class SignatureTemplateDataSchema(BaseModel):
-    points: list[SignaturePointSchema] = Field(..., min_length=settings.SIGNATURE_MIN_POINT_COUNT)
+    points: list[SignaturePointSchema] = Field(
+        ..., min_length=settings.SIGNATURE_MIN_POINT_COUNT
+    )
     duration_ms: float = Field(..., gt=0)
     break_count: float = Field(..., ge=0)
 

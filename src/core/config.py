@@ -20,13 +20,17 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "db_pass"
     POSTGRES_DB: str = "db_name"
 
-    PRIVATE_KEY_PATH: Path = Path(os.path.join(BASE_DIR, "core", "certs", "jwt-private.pem"))
-    PUBLIC_KEY_PATH: Path = Path(os.path.join(BASE_DIR, "core", "certs", "jwt-public.pem"))
+    PRIVATE_KEY_PATH: Path = Path(
+        os.path.join(BASE_DIR, "core", "certs", "jwt-private.pem")
+    )
+    PUBLIC_KEY_PATH: Path = Path(
+        os.path.join(BASE_DIR, "core", "certs", "jwt-public.pem")
+    )
     ALGORITHM: str = "RS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=15, gt=0)
     REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=30, gt=0)
 
-    SIGNATURE_MIN_POINT_COUNT: int = Field(default=2, gt=2)
+    SIGNATURE_MIN_POINT_COUNT: int = Field(default=5, gt=2)
     SIGNATURE_SAMPLE_COUNT: int = Field(default=5, gt=0, le=10)
     SIGNATURE_NORMALIZED_POINT_COUNT: int = Field(default=1024, gt=1, le=4096)
 
@@ -42,10 +46,10 @@ class Settings(BaseSettings):
 
     SIGNATURE_MATCH_THRESHOLD: float = Field(default=0.85, ge=0, le=1)
 
-    TEST_DB_URL: str | None = None
+    TEST_DB_URL: str | None = Field(default=None)
 
     @property
-    def DB_URL(self) -> str:
+    def postgres_dsn(self) -> str:
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     model_config = SettingsConfigDict(
