@@ -86,10 +86,10 @@ function createSignaturePad({canvasId, clearButtonId, errorElementId, onChange})
     }
 
     canvas.addEventListener('pointerdown', function(event) {
-        // if (event.pointerType !== 'pen') {
-        //     showError('Signature requires a pen input');
-        //     return;
-        // }
+        if (event.pointerType !== 'pen') {
+            showError('Signature requires a pen input');
+            return;
+        }
 
         if (activePointerId !== null) {
             return;
