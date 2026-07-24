@@ -49,6 +49,5 @@ class MessageRepository(BaseDatabaseRepository):
         messages_data = result.mappings().all()
 
         return [
-            MessageSchema.model_validate(message_data)
-            for message_data in messages_data
+            MessageSchema.model_validate(message_data) for message_data in messages_data
         ]
