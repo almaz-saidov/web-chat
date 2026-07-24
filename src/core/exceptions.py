@@ -33,6 +33,14 @@ class WrongUsernameOrPasswordHTTPException(HTTPException):
         )
 
 
+class SignatureVerificationFailedHTTPException(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Signature verification failed",
+        )
+
+
 class AccessTokenExpiredHTTPException(HTTPException):
     def __init__(self) -> None:
         super().__init__(

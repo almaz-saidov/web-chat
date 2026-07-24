@@ -1,4 +1,5 @@
 import uuid
+from typing import cast
 
 from fastapi import status
 from httpx import AsyncClient, Response
@@ -10,13 +11,32 @@ def make_username(prefix: str = "message_user") -> str:
     return f"{prefix}_{uuid.uuid4().hex}"
 
 
+def make_signature_sample() -> dict[str, object]:
+    return {
+        "points": [
+            {"x": 0, "y": 0, "pressure": 0.5, "tilt_x": 0, "tilt_y": 0, "time_ms": 0},
+            {"x": 1, "y": 1, "pressure": 0.5, "tilt_x": 0, "tilt_y": 0, "time_ms": 50},
+            {"x": 2, "y": 1, "pressure": 0.5, "tilt_x": 0, "tilt_y": 0, "time_ms": 100},
+            {"x": 3, "y": 2, "pressure": 0.5, "tilt_x": 0, "tilt_y": 0, "time_ms": 150},
+            {"x": 4, "y": 3, "pressure": 0.5, "tilt_x": 0, "tilt_y": 0, "time_ms": 200},
+        ],
+        "duration_ms": 200,
+        "break_count": 0,
+    }
+
+
+def make_signature_samples() -> list[dict[str, object]]:
+    return [make_signature_sample() for _ in range(5)]
+
+
 def make_register_payload(
     username: str | None = None, password: str = DEFAULT_PASSWORD
-) -> dict[str, str]:
+) -> dict[str, object]:
     return {
         "username": username or make_username(),
         "password": password,
         "password_confirmation": password,
+        "signature_samples": make_signature_samples(),
     }
 
 
@@ -43,6 +63,7 @@ async def get_access_token(
         json={
             "username": payload["username"],
             "password": payload["password"],
+            "signature_sample": make_signature_sample(),
         },
     )
     assert login_response.status_code == status.HTTP_200_OK, (
@@ -53,11 +74,12 @@ async def get_access_token(
     assert isinstance(response_data, dict), (
         "Login helper response must be a JSON object"
     )
-    assert isinstance(response_data.get("access_token"), str), (
+    access_token = response_data.get("access_token")
+    assert isinstance(access_token, str), (
         "Login helper response must contain string access token"
     )
 
-    return payload["username"], response_data["access_token"]
+    return cast(str, payload["username"]), access_token
 
 
 def make_auth_headers(access_token: str) -> dict[str, str]:

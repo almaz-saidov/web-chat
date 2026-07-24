@@ -21,7 +21,7 @@ services:
       web-chat-db:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD-SHELL", "curl -fsS http://localhost:$${SERVER_PORT:-8000}/tests/healthcheck >/dev/null" ]
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:$${SERVER_PORT:-8000}/api/healthcheck >/dev/null" ]
       interval: 15s
       timeout: 5s
       retries: 5

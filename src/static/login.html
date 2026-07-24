@@ -21,6 +21,16 @@
                 <input type="password" id="password" placeholder="Password" required>
             </div>
 
+            <div class="signature-panel">
+                <div class="signature-header">
+                    <span>Signature</span>
+                </div>
+                <canvas class="signature-canvas" id="signatureCanvas" width="420" height="180"></canvas>
+                <div class="signature-actions signature-actions--single">
+                    <button type="button" class="secondary-btn" id="clearSignature">Clear</button>
+                </div>
+            </div>
+
             <button type="submit" class="btn">Login</button>
         </form>
 
@@ -29,6 +39,7 @@
         </div>
     </div>
 
+    <script src="/js/signature-pad.js"></script>
     <script src="/js/login.js"></script>
 </body>
 </html>

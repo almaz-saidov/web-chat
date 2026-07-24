@@ -1,4 +1,5 @@
 import uuid
+from typing import cast
 
 from fastapi import status
 from httpx import AsyncClient, Response
@@ -10,13 +11,122 @@ def make_username(prefix: str = "user") -> str:
     return f"{prefix}_{uuid.uuid4().hex}"
 
 
+def make_signature_sample(y_offset: float = 0) -> dict[str, object]:
+    return {
+        "points": [
+            {
+                "x": 0,
+                "y": y_offset,
+                "pressure": 0.5,
+                "tilt_x": 0,
+                "tilt_y": 0,
+                "time_ms": 0,
+            },
+            {
+                "x": 1,
+                "y": y_offset + 1,
+                "pressure": 0.5,
+                "tilt_x": 0,
+                "tilt_y": 0,
+                "time_ms": 50,
+            },
+            {
+                "x": 2,
+                "y": y_offset + 1,
+                "pressure": 0.5,
+                "tilt_x": 0,
+                "tilt_y": 0,
+                "time_ms": 100,
+            },
+            {
+                "x": 3,
+                "y": y_offset + 2,
+                "pressure": 0.5,
+                "tilt_x": 0,
+                "tilt_y": 0,
+                "time_ms": 150,
+            },
+            {
+                "x": 4,
+                "y": y_offset + 3,
+                "pressure": 0.5,
+                "tilt_x": 0,
+                "tilt_y": 0,
+                "time_ms": 200,
+            },
+        ],
+        "duration_ms": 200,
+        "break_count": 0,
+    }
+
+
+def make_wrong_signature_sample() -> dict[str, object]:
+    return {
+        "points": [
+            {"x": 0, "y": 0, "pressure": 1, "tilt_x": 80, "tilt_y": -80, "time_ms": 0},
+            {
+                "x": 0,
+                "y": 4,
+                "pressure": 1,
+                "tilt_x": 80,
+                "tilt_y": -80,
+                "time_ms": 400,
+            },
+            {
+                "x": 4,
+                "y": 0,
+                "pressure": 1,
+                "tilt_x": 80,
+                "tilt_y": -80,
+                "time_ms": 800,
+            },
+            {
+                "x": 4,
+                "y": 4,
+                "pressure": 1,
+                "tilt_x": 80,
+                "tilt_y": -80,
+                "time_ms": 1200,
+            },
+            {
+                "x": 2,
+                "y": 2,
+                "pressure": 1,
+                "tilt_x": 80,
+                "tilt_y": -80,
+                "time_ms": 1600,
+            },
+        ],
+        "duration_ms": 1600,
+        "break_count": 4,
+    }
+
+
+def make_short_signature_sample() -> dict[str, object]:
+    return {
+        "points": [
+            {"x": 0, "y": 0, "pressure": 0.5, "tilt_x": 0, "tilt_y": 0, "time_ms": 0},
+            {"x": 1, "y": 1, "pressure": 0.5, "tilt_x": 0, "tilt_y": 0, "time_ms": 50},
+            {"x": 2, "y": 1, "pressure": 0.5, "tilt_x": 0, "tilt_y": 0, "time_ms": 100},
+            {"x": 3, "y": 2, "pressure": 0.5, "tilt_x": 0, "tilt_y": 0, "time_ms": 150},
+        ],
+        "duration_ms": 150,
+        "break_count": 0,
+    }
+
+
+def make_signature_samples() -> list[dict[str, object]]:
+    return [make_signature_sample(y_offset=0) for _ in range(5)]
+
+
 def make_register_payload(
     username: str | None = None, password: str = DEFAULT_PASSWORD
-) -> dict[str, str]:
+) -> dict[str, object]:
     return {
         "username": username or make_username(),
         "password": password,
         "password_confirmation": password,
+        "signature_samples": make_signature_samples(),
     }
 
 
@@ -29,7 +139,9 @@ def assert_response_detail(response: Response, expected_detail: str) -> None:
     )
 
 
-async def register_user(async_client: AsyncClient, payload: dict[str, str]) -> Response:
+async def register_user(
+    async_client: AsyncClient, payload: dict[str, object]
+) -> Response:
     response = await async_client.post("/api/auth/register", json=payload)
 
     assert response.status_code == status.HTTP_201_CREATED, (
@@ -46,6 +158,7 @@ async def login_user(
         json={
             "username": username,
             "password": password,
+            "signature_sample": make_signature_sample(),
         },
     )
 
@@ -157,6 +270,42 @@ async def test_register_returns_422_for_invalid_payload(
     assert "detail" in response_data, "Validation error response must contain detail"
 
 
+async def test_register_returns_422_for_wrong_signature_sample_count(
+    async_client: AsyncClient,
+) -> None:
+    payload = make_register_payload()
+    payload["signature_samples"] = make_signature_samples()[:-1]
+
+    response = await async_client.post("/api/auth/register", json=payload)
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT, (
+        "Register endpoint must validate signature sample count"
+    )
+    response_data = response.json()
+    assert isinstance(response_data, dict), (
+        "Validation error response must be a JSON object"
+    )
+    assert "detail" in response_data, "Validation error response must contain detail"
+
+
+async def test_register_returns_422_for_short_signature_sample(
+    async_client: AsyncClient,
+) -> None:
+    payload = make_register_payload()
+    payload["signature_samples"] = [make_short_signature_sample() for _ in range(5)]
+
+    response = await async_client.post("/api/auth/register", json=payload)
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT, (
+        "Register endpoint must validate signature sample point count"
+    )
+    response_data = response.json()
+    assert isinstance(response_data, dict), (
+        "Validation error response must be a JSON object"
+    )
+    assert "detail" in response_data, "Validation error response must contain detail"
+
+
 async def test_login_returns_200_and_refresh_cookie_for_valid_credentials(
     async_client: AsyncClient,
 ) -> None:
@@ -168,6 +317,7 @@ async def test_login_returns_200_and_refresh_cookie_for_valid_credentials(
         json={
             "username": payload["username"],
             "password": payload["password"],
+            "signature_sample": make_signature_sample(),
         },
     )
 
@@ -176,6 +326,49 @@ async def test_login_returns_200_and_refresh_cookie_for_valid_credentials(
     )
     assert_access_token_response(response=response, failure_message_prefix="Login")
     assert_refresh_cookie_set(response=response)
+
+
+async def test_login_returns_422_without_signature_sample(
+    async_client: AsyncClient,
+) -> None:
+    response = await async_client.post(
+        "/api/auth/login",
+        json={
+            "username": make_username(),
+            "password": DEFAULT_PASSWORD,
+        },
+    )
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT, (
+        "Login endpoint must require signature sample"
+    )
+    response_data = response.json()
+    assert isinstance(response_data, dict), (
+        "Validation error response must be a JSON object"
+    )
+    assert "detail" in response_data, "Validation error response must contain detail"
+
+
+async def test_login_returns_422_for_short_signature_sample(
+    async_client: AsyncClient,
+) -> None:
+    response = await async_client.post(
+        "/api/auth/login",
+        json={
+            "username": make_username(),
+            "password": DEFAULT_PASSWORD,
+            "signature_sample": make_short_signature_sample(),
+        },
+    )
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT, (
+        "Login endpoint must validate signature sample point count"
+    )
+    response_data = response.json()
+    assert isinstance(response_data, dict), (
+        "Validation error response must be a JSON object"
+    )
+    assert "detail" in response_data, "Validation error response must contain detail"
 
 
 async def test_login_returns_401_for_wrong_password(async_client: AsyncClient) -> None:
@@ -187,6 +380,7 @@ async def test_login_returns_401_for_wrong_password(async_client: AsyncClient) -
         json={
             "username": payload["username"],
             "password": "wrong-password",
+            "signature_sample": make_signature_sample(),
         },
     )
 
@@ -198,6 +392,27 @@ async def test_login_returns_401_for_wrong_password(async_client: AsyncClient) -
     )
 
 
+async def test_login_returns_401_for_wrong_signature(async_client: AsyncClient) -> None:
+    payload = make_register_payload()
+    await register_user(async_client=async_client, payload=payload)
+
+    response = await async_client.post(
+        "/api/auth/login",
+        json={
+            "username": payload["username"],
+            "password": payload["password"],
+            "signature_sample": make_wrong_signature_sample(),
+        },
+    )
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED, (
+        "Login endpoint must reject wrong signature"
+    )
+    assert_response_detail(
+        response=response, expected_detail="Signature verification failed"
+    )
+
+
 async def test_refresh_returns_200_for_valid_refresh_cookie(
     async_client: AsyncClient,
 ) -> None:
@@ -205,8 +420,8 @@ async def test_refresh_returns_200_for_valid_refresh_cookie(
     await register_user(async_client=async_client, payload=payload)
     login_response = await login_user(
         async_client=async_client,
-        username=payload["username"],
-        password=payload["password"],
+        username=cast(str, payload["username"]),
+        password=cast(str, payload["password"]),
     )
 
     response = await async_client.post(
@@ -240,8 +455,8 @@ async def test_logout_returns_200_and_deletes_refresh_cookie(
     await register_user(async_client=async_client, payload=payload)
     login_response = await login_user(
         async_client=async_client,
-        username=payload["username"],
-        password=payload["password"],
+        username=cast(str, payload["username"]),
+        password=cast(str, payload["password"]),
     )
 
     response = await async_client.post(

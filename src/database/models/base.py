@@ -1,5 +1,4 @@
 from sqlalchemy.orm import DeclarativeBase
 
 
-class BaseModel(DeclarativeBase):
-    pass
+class BaseModel(DeclarativeBase): ...
