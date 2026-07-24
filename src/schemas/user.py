@@ -16,8 +16,7 @@ class BaseUserSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class UserResponseSchema(BaseUserSchema):
-    pass
+class UserResponseSchema(BaseUserSchema): ...
 
 
 class UserSchema(BaseUserSchema):
