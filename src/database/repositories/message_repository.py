@@ -1,4 +1,4 @@
-from sqlalchemy import insert, select
+from sqlalchemy import insert, literal, select
 
 from database.models import Message, User
 from database.repositories.base_repository import BaseDatabaseRepository
@@ -20,35 +20,35 @@ class MessageRepository(BaseDatabaseRepository):
         query = (
             insert(Message)
             .values(**message_db_create_data.model_dump())
-            .returning(Message)
+            .returning(
+                Message.id,
+                literal(user.username).label("username"),
+                Message.content,
+                Message.created_at,
+            )
         )
 
         result = await self._session.execute(query)
-        message = result.scalar_one()
+        message_data = result.mappings().one()
 
-        return MessageSchema(
-            id=message.id,
-            username=user.username,
-            content=message.content,
-            created_at=message.created_at,
-        )
+        return MessageSchema.model_validate(message_data)
 
     async def get_all(self) -> list[MessageSchema]:
         query = (
-            select(Message, User)
+            select(
+                Message.id,
+                User.username.label("username"),
+                Message.content,
+                Message.created_at,
+            )
             .join(User, User.id == Message.user_id)
             .order_by(Message.created_at)
         )
 
         result = await self._session.execute(query)
-        rows = result.all()
+        messages_data = result.mappings().all()
 
         return [
-            MessageSchema(
-                id=message.id,
-                username=user.username,
-                content=message.content,
-                created_at=message.created_at,
-            )
-            for message, user in rows
+            MessageSchema.model_validate(message_data)
+            for message_data in messages_data
         ]

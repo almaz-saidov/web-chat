@@ -28,6 +28,7 @@ class RefreshTokenService(DatabaseService[RefreshTokenRepository]):
 
         if not refresh_token:
             raise InvalidTokenHTTPException()
+
         return refresh_token
 
     async def delete_by_token(self, token: uuid.UUID) -> None:
