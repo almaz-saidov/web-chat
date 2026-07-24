@@ -53,11 +53,6 @@ class SignatureService(DatabaseService[SignatureTemplateRepository]):
     def _build_template(
         self, signature_samples: list[SignatureSampleSchema]
     ) -> SignatureTemplateDataSchema:
-        if len(signature_samples) != settings.SIGNATURE_SAMPLE_COUNT:
-            raise ValueError(
-                f"Signature template requires exactly {settings.SIGNATURE_SAMPLE_COUNT} samples"
-            )
-
         normalized_samples = [
             self._normalize_sample_data(signature_sample=signature_sample)
             for signature_sample in signature_samples

@@ -166,19 +166,6 @@ async def test_create_template_builds_template_and_returns_repository_result() -
     )
 
 
-async def test_create_template_raises_error_for_wrong_sample_count() -> None:
-    repository = make_repository()
-    repository.create = AsyncMock()
-    service = make_service(repository=repository)
-
-    with pytest.raises(ValueError, match="exactly 5 samples"):
-        await service.create_template(
-            user_id=uuid.uuid4(), signature_samples=make_signature_samples()[:-1]
-        )
-
-    repository.create.assert_not_awaited()
-
-
 async def test_verify_signature_returns_false_when_template_does_not_exist() -> None:
     user_id = uuid.uuid4()
     repository = make_repository()
