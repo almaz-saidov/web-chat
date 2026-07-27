@@ -110,7 +110,7 @@ route -> service -> repository -> PostgreSQL
 
 ```python
 async def test_create_message_persists_data(async_client, db_session):
-    response = await async_client.post("/api/message/create", json={...}, headers={...})
+    response = await async_client.post("/api/messages/create", json={...}, headers={...})
 
     assert response.status_code == 200
 

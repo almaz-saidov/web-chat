@@ -8,10 +8,12 @@ from core.exceptions import (
 )
 from database.repositories.refresh_token_repository import RefreshTokenRepository
 from schemas.refresh_token import RefreshTokenCreateSchema, RefreshTokenSchema
-from services.db_service import DatabaseService
 
 
-class RefreshTokenService(DatabaseService[RefreshTokenRepository]):
+class RefreshTokenService:
+    def __init__(self, repository: RefreshTokenRepository = Depends()) -> None:
+        self._repository = repository
+
     async def create_token(
         self, refresh_token_create_data: RefreshTokenCreateSchema
     ) -> RefreshTokenSchema:
@@ -49,9 +51,3 @@ class RefreshTokenService(DatabaseService[RefreshTokenRepository]):
             await self._repository.force_delete_by_user_id(
                 user_id=refresh_token_create_data.user_id
             )
-
-
-def get_refresh_token_service(
-    repository: RefreshTokenRepository = Depends(),
-) -> RefreshTokenService:
-    return RefreshTokenService(repository=repository)

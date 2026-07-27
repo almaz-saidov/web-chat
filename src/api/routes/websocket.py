@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, WebSocket
 
 from api.dependencies import get_current_user_from_ws
 from schemas.user import UserSchema
-from services.websoket_service import WebSocketService, get_websocket_service
+from services.websoket_service import WebSocketService
 
 router = APIRouter()
 
@@ -10,7 +10,7 @@ router = APIRouter()
 @router.websocket("/ws")
 async def websocket_endpoint(
     websocket: WebSocket,
-    websocket_service: WebSocketService = Depends(get_websocket_service),
+    websocket_service: WebSocketService = Depends(),
     user: UserSchema = Depends(get_current_user_from_ws),
 ) -> None:
     await websocket_service.handle_websocket(

@@ -14,10 +14,12 @@ from schemas.signature import (
     SignatureTemplateDataSchema,
     SignatureTemplateSchema,
 )
-from services.db_service import DatabaseService
 
 
-class SignatureService(DatabaseService[SignatureTemplateRepository]):
+class SignatureService:
+    def __init__(self, repository: SignatureTemplateRepository = Depends()) -> None:
+        self._repository = repository
+
     async def create_template(
         self,
         user_id: uuid.UUID,
@@ -340,9 +342,3 @@ class SignatureService(DatabaseService[SignatureTemplateRepository]):
 
     def _average(self, values: list[float]) -> float:
         return sum(values) / len(values)
-
-
-def get_signature_service(
-    repository: SignatureTemplateRepository = Depends(),
-) -> SignatureService:
-    return SignatureService(repository=repository)

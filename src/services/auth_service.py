@@ -1,6 +1,5 @@
 import uuid
 from datetime import datetime, timedelta, timezone
-from functools import lru_cache
 
 import bcrypt
 from fastapi import Depends, Request, Response
@@ -26,24 +25,23 @@ from schemas.user import (
     UserResponseSchema,
     UserSchema,
 )
-from services.cookies_service import CookiesService, get_cookies_service
-from services.jwt_service import JWTService, get_jwt_service
+from services.cookies_service import CookiesService
+from services.jwt_service import JWTService
 from services.refresh_token_service import (
     RefreshTokenService,
-    get_refresh_token_service,
 )
-from services.signature_service import SignatureService, get_signature_service
-from services.user_service import UserService, get_user_service
+from services.signature_service import SignatureService
+from services.user_service import UserService
 
 
 class AuthService:
     def __init__(
         self,
-        jwt_service: JWTService,
-        user_service: UserService,
-        refresh_token_service: RefreshTokenService,
-        cookies_service: CookiesService,
-        signature_service: SignatureService,
+        jwt_service: JWTService = Depends(),
+        user_service: UserService = Depends(),
+        refresh_token_service: RefreshTokenService = Depends(),
+        cookies_service: CookiesService = Depends(),
+        signature_service: SignatureService = Depends(),
     ) -> None:
         self.__jwt_service = jwt_service
         self.__user_service = user_service
@@ -199,20 +197,3 @@ class AuthService:
             expires_at=datetime.now(timezone.utc) + timedelta(days=30),
         )
         return refresh_token_creation_data
-
-
-@lru_cache
-def get_auth_service(
-    jwt_service: JWTService = Depends(get_jwt_service),
-    user_service: UserService = Depends(get_user_service),
-    refresh_token_service: RefreshTokenService = Depends(get_refresh_token_service),
-    cookies_service: CookiesService = Depends(get_cookies_service),
-    signature_service: SignatureService = Depends(get_signature_service),
-) -> AuthService:
-    return AuthService(
-        jwt_service=jwt_service,
-        user_service=user_service,
-        refresh_token_service=refresh_token_service,
-        cookies_service=cookies_service,
-        signature_service=signature_service,
-    )

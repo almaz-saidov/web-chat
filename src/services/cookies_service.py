@@ -35,7 +35,3 @@ class CookiesService:
             raise RefreshTokenCookieIsMissingHTTPException()
 
         return refresh_token_str
-
-
-def get_cookies_service() -> CookiesService:
-    return CookiesService()

@@ -33,7 +33,3 @@ class JWTService:
         )
 
         return JWTPayloadSchema(**decoded_jwt)
-
-
-def get_jwt_service() -> JWTService:
-    return JWTService()

@@ -57,7 +57,7 @@ function addMessage(messageData) {
 
 async function loadMessageHistory() {
     try {
-        let response = await fetch('/api/message/all', {
+        let response = await fetch('/api/messages', {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -72,7 +72,7 @@ async function loadMessageHistory() {
                 await logout();
             } else if (error.detail === 'Access token expired') {
                 await refresh();
-                response = await fetch('/api/message/all', {
+                response = await fetch('/api/messages', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -114,7 +114,7 @@ async function sendMessage() {
         sendBtn.disabled = true;
         input.disabled = true;
 
-        let response = await fetch('/api/message/create', {
+        let response = await fetch('/api/messages/create', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -132,7 +132,7 @@ async function sendMessage() {
                 await logout();
             } else if (error.detail === 'Access token expired') {
                 await refresh();
-                response = await fetch('/api/message/create', {
+                response = await fetch('/api/messages/create', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
