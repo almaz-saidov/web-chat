@@ -5,10 +5,10 @@ from schemas.message import MessageCreateSchema, MessageSchema
 from schemas.user import UserSchema
 from services.message_service import MessageService
 
-router = APIRouter(prefix="/message", tags=["Messages"])
+router = APIRouter(prefix="/messages", tags=["Messages"])
 
 
-@router.get("/all", response_model=list[MessageSchema])
+@router.get("", response_model=list[MessageSchema])
 async def get_messages(
     user: UserSchema = Depends(get_current_user),
     message_service: MessageService = Depends(),
