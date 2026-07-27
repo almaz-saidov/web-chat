@@ -134,7 +134,7 @@ async def test_create_message_persists_database_row_for_authorized_user(
     message_content = f"integration-message-{uuid.uuid4().hex}"
 
     response = await async_client.post(
-        "/api/message/create",
+        "/api/messages/create",
         json={"content": message_content},
         headers=make_auth_headers(access_token=access_token),
     )
@@ -184,7 +184,7 @@ async def test_get_messages_reads_persisted_rows_in_created_at_order(
     await db_session.commit()
 
     response = await async_client.get(
-        "/api/message/all", headers=make_auth_headers(access_token=access_token)
+        "/api/messages", headers=make_auth_headers(access_token=access_token)
     )
 
     assert response.status_code == status.HTTP_200_OK, (
