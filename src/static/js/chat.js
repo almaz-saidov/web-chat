@@ -114,7 +114,7 @@ async function sendMessage() {
         sendBtn.disabled = true;
         input.disabled = true;
 
-        let response = await fetch('/api/messages/create', {
+        let response = await fetch('/api/messages', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -132,7 +132,7 @@ async function sendMessage() {
                 await logout();
             } else if (error.detail === 'Access token expired') {
                 await refresh();
-                response = await fetch('/api/messages/create', {
+                response = await fetch('/api/messages', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
