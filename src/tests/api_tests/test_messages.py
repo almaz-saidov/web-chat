@@ -129,9 +129,7 @@ async def test_get_messages_returns_401_for_invalid_token(
 async def test_create_message_returns_401_without_token(
     async_client: AsyncClient,
 ) -> None:
-    response = await async_client.post(
-        "/api/messages/create", json={"content": "hello"}
-    )
+    response = await async_client.post("/api/messages", json={"content": "hello"})
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED, (
         "Create message endpoint must require bearer token"
@@ -146,7 +144,7 @@ async def test_create_message_returns_200_for_authorized_user(
     message_content = f"hello-{uuid.uuid4().hex}"
 
     response = await async_client.post(
-        "/api/messages/create",
+        "/api/messages",
         json={"content": message_content},
         headers=make_auth_headers(access_token=access_token),
     )
@@ -176,7 +174,7 @@ async def test_create_message_returns_422_for_invalid_payload(
     _, access_token = await get_access_token(async_client=async_client)
 
     response = await async_client.post(
-        "/api/messages/create",
+        "/api/messages",
         json={},
         headers=make_auth_headers(access_token=access_token),
     )

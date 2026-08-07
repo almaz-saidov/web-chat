@@ -134,7 +134,7 @@ async def test_create_message_persists_database_row_for_authorized_user(
     message_content = f"integration-message-{uuid.uuid4().hex}"
 
     response = await async_client.post(
-        "/api/messages/create",
+        "/api/messages",
         json={"content": message_content},
         headers=make_auth_headers(access_token=access_token),
     )

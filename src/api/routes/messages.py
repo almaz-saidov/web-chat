@@ -16,7 +16,7 @@ async def get_messages(
     return await message_service.get_all()
 
 
-@router.post("/create", response_model=MessageSchema)
+@router.post("", response_model=MessageSchema)
 async def create_message(
     message_create_data: MessageCreateSchema,
     user: UserSchema = Depends(get_current_user),
