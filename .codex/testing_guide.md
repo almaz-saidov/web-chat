@@ -80,7 +80,9 @@ API-тесты проверяют HTTP-контракт: статус-коды, 
 async def test_register_returns_201_for_valid_payload(async_client):
     response = await async_client.post("/api/auth/register", json={...})
 
-    assert response.status_code == 201
+    assert response.status_code == 201, (
+        "Registration endpoint must return 201 for valid payload"
+    )
 ```
 
 ## Integration-тесты
@@ -112,10 +114,14 @@ route -> service -> repository -> PostgreSQL
 async def test_create_message_persists_data(async_client, db_session):
     response = await async_client.post("/api/messages/create", json={...}, headers={...})
 
-    assert response.status_code == 200
+    assert response.status_code == 200, (
+        "Create message endpoint must accept valid authorized request"
+    )
 
     result = await db_session.execute(...)
-    assert result.scalar_one_or_none() is not None
+    assert result.scalar_one_or_none() is not None, (
+        "Create message endpoint must persist message in database"
+    )
 ```
 
 ## Авторизация в тестах
