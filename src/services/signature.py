@@ -4,7 +4,7 @@ from math import inf, sqrt
 from fastapi import Depends
 
 from core.config import settings
-from database.repositories.signature_template_repository import (
+from database.repositories.signature_template import (
     SignatureTemplateRepository,
 )
 from schemas.signature import (

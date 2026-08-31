@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 
 from core.config import settings
-from database.repositories.signature_template_repository import (
+from database.repositories.signature_template import (
     SignatureTemplateRepository,
 )
 from schemas.signature import (
@@ -17,7 +17,7 @@ from schemas.signature import (
     SignatureTemplateDataSchema,
     SignatureTemplateSchema,
 )
-from services.signature_service import SignatureService
+from services.signature import SignatureService
 
 DEFAULT_COORDINATES = (
     (0.0, 0.0),

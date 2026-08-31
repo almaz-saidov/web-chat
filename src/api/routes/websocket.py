@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, WebSocket
 
 from api.dependencies import get_current_user_from_ws
 from schemas.user import UserSchema
-from services.websoket_service import WebSocketService
+from services.websocket import WebSocketService
 
 router = APIRouter()
 

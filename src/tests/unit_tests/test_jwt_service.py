@@ -5,7 +5,7 @@ from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
 from core.config import settings
 from schemas.jwt import JWTPayloadSchema
-from services.jwt_service import JWTService
+from services.jwt import JWTService
 
 
 def test_decode_jwt_returns_payload_for_encoded_token(jwt_keys: None) -> None:

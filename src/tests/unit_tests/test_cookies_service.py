@@ -6,7 +6,7 @@ from fastapi import Request, Response
 
 from core.exceptions import RefreshTokenCookieIsMissingHTTPException
 from schemas.refresh_token import RefreshTokenSchema
-from services.cookies_service import CookiesService
+from services.cookies import CookiesService
 
 
 def make_refresh_token_schema(

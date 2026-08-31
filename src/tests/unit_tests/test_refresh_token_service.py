@@ -9,9 +9,9 @@ from core.exceptions import (
     InvalidRefreshTokenFormatHTTPException,
     InvalidTokenHTTPException,
 )
-from database.repositories.refresh_token_repository import RefreshTokenRepository
+from database.repositories.refresh_token import RefreshTokenRepository
 from schemas.refresh_token import RefreshTokenCreateSchema, RefreshTokenSchema
-from services.refresh_token_service import RefreshTokenService
+from services.refresh_token import RefreshTokenService
 
 
 def make_refresh_token_schema(

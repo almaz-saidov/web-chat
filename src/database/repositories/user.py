@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy import insert, select
 
 from database.models import User
-from database.repositories.base_repository import BaseDatabaseRepository
+from database.repositories.base import BaseDatabaseRepository
 from schemas.user import UserCreateDatabaseSchema, UserSchema
 
 

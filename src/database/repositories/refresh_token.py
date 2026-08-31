@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy import delete, insert, select
 
 from database.models import RefreshToken
-from database.repositories.base_repository import BaseDatabaseRepository
+from database.repositories.base import BaseDatabaseRepository
 from schemas.refresh_token import RefreshTokenCreateSchema, RefreshTokenSchema
 
 

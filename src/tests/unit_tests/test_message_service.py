@@ -3,10 +3,10 @@ from datetime import datetime, timezone
 from typing import cast
 from unittest.mock import AsyncMock, Mock
 
-from database.repositories.message_repository import MessageRepository
+from database.repositories.message import MessageRepository
 from schemas.message import MessageCreateSchema, MessageSchema
 from schemas.user import UserSchema
-from services.message_service import MessageService
+from services.message import MessageService
 
 
 def make_user_schema() -> UserSchema:
