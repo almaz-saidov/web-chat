@@ -25,13 +25,13 @@ from schemas.user import (
     UserResponseSchema,
     UserSchema,
 )
-from services.cookies_service import CookiesService
-from services.jwt_service import JWTService
-from services.refresh_token_service import (
+from services.cookies import CookiesService
+from services.jwt import JWTService
+from services.refresh_token import (
     RefreshTokenService,
 )
-from services.signature_service import SignatureService
-from services.user_service import UserService
+from services.signature import SignatureService
+from services.user import UserService
 
 
 class AuthService:

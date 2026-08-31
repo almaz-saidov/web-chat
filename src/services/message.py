@@ -1,6 +1,6 @@
 from fastapi import Depends
 
-from database.repositories.message_repository import MessageRepository
+from database.repositories.message import MessageRepository
 from schemas.message import MessageCreateSchema, MessageSchema
 from schemas.user import UserSchema
 

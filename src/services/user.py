@@ -3,7 +3,7 @@ import uuid
 from fastapi import Depends
 
 from core.exceptions import UserNotFoundHTTPException
-from database.repositories.user_repository import UserRepository
+from database.repositories.user import UserRepository
 from schemas.user import UserCreateDatabaseSchema, UserSchema
 
 

@@ -6,9 +6,9 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 
 from core.exceptions import UserNotFoundHTTPException
-from database.repositories.user_repository import UserRepository
+from database.repositories.user import UserRepository
 from schemas.user import UserCreateDatabaseSchema, UserSchema
-from services.user_service import UserService
+from services.user import UserService
 
 
 def make_user_schema(

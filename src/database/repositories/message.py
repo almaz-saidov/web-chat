@@ -1,7 +1,7 @@
 from sqlalchemy import insert, literal, select
 
 from database.models import Message, User
-from database.repositories.base_repository import BaseDatabaseRepository
+from database.repositories.base import BaseDatabaseRepository
 from schemas.message import (
     MessageCreateDatabaseSchema,
     MessageCreateSchema,

@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from api.dependencies import get_current_user
 from schemas.message import MessageCreateSchema, MessageSchema
 from schemas.user import UserSchema
-from services.message_service import MessageService
+from services.message import MessageService
 
 router = APIRouter(prefix="/messages", tags=["Messages"])
 

@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy import insert, select
 
 from database.models import SignatureTemplate
-from database.repositories.base_repository import BaseDatabaseRepository
+from database.repositories.base import BaseDatabaseRepository
 from schemas.signature import SignatureTemplateCreateSchema, SignatureTemplateSchema
 
 

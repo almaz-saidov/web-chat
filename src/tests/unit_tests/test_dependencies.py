@@ -11,7 +11,7 @@ from starlette.datastructures import QueryParams
 from api.dependencies import get_current_user, get_current_user_from_ws
 from core.exceptions import TokenIsRequiredWebSocketException
 from schemas.user import UserSchema
-from services.auth_service import AuthService
+from services.auth import AuthService
 
 
 def make_user_schema() -> UserSchema:

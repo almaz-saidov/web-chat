@@ -3,7 +3,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from core.exceptions import TokenIsRequiredWebSocketException
 from schemas.user import UserSchema
-from services.auth_service import AuthService
+from services.auth import AuthService
 
 security = HTTPBearer()
 
